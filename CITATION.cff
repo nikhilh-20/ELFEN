@@ -3,19 +3,9 @@ title: "ELFEN: Linux Malware Analysis Sandbox"
 message: "If you use this software, please cite it as below."
 type: software
 authors:
-    - given-names: Nikhil Ashok
-    - family-names: Hegde
+- given-names: "Nikhil Ashok"
+  family-names: "Hegde"
 url: "https://github.com/nikhilh-20/ELFEN"
 repository-code: "https://github.com/nikhilh-20/ELFEN"
-version: 2
-abstract: >
-    ELFEN is a Linux Malware Analysis Sandbox.
-keywords:
-    - linux
-    - malware
-    - analysis
-    - sandbox
-    - elfen
-    - buildroot
-    - ebpf
+version: 1
 license: GPL-3.0
