@@ -1,0 +1,436 @@
+<!--
+Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+{% extends "web/base.html" %}
+{% block title %}: Backend Report{% endblock title %}
+
+{% block content %}
+    <div class="mx-auto" id="report-content">
+        {% if backend == "staticdetection" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Static Detection</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 55%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Detector</th>
+                                    <th style="text-align: right;">Score</th>
+                                    <th style="text-align: right;">Description</th>
+                                    <th style="text-align: right;">Author</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.name }}</td>
+                                        {% if entry.score < 30 %}
+                                            <td class="text-info" style="text-align: right;">{{ entry.score }}</td>
+                                        {% elif entry.score >= 30 and entry.score < 70 %}
+                                            <td class="text-warning" style="text-align: right;">{{ entry.score }}</td>
+                                        {% elif entry.score >= 70 %}
+                                            <td class="text-danger" style="text-align: right;">{{ entry.score }}</td>
+                                        {% else %}
+                                            <td class="text-danger" style="text-align: right;"></td>
+                                        {% endif %}
+                                        <td style="text-align: right;">{{ entry.description }}</td>
+                                        <td style="text-align: right;">{{ entry.author }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "behavioraldetection" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Behavioral Detection</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 55%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Detector</th>
+                                    <th style="text-align: right;">Score</th>
+                                    <th style="text-align: right;">Description</th>
+                                    <th style="text-align: right;">Author</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.name }}</td>
+                                        {% if entry.score < 30 %}
+                                            <td class="text-info" style="text-align: right;">{{ entry.score }}</td>
+                                        {% elif entry.score >= 30 and entry.score < 70 %}
+                                            <td class="text-warning" style="text-align: right;">{{ entry.score }}</td>
+                                        {% elif entry.score >= 70 %}
+                                            <td class="text-danger" style="text-align: right;">{{ entry.score }}</td>
+                                        {% else %}
+                                            <td class="text-danger" style="text-align: right;"></td>
+                                        {% endif %}
+                                        <td style="text-align: right;">{{ entry.description }}</td>
+                                        <td style="text-align: right;">{{ entry.author }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "elfheader" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">ELF Header</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 40%; margin: auto;">
+                            <tbody>
+                                {% for field, value in report.data.items %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ field }}</td>
+                                        <td style="text-align: right;">{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {%  elif backend == "elfprogheader" %}
+            <div class="card-group" style="margin-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">ELF Program Headers Table</div>
+                    {% for entry in report.data %}
+                        <div class="card-body" style="margin-top: 50px">
+                            <table class="table text-white" style="width: 30%; margin: auto;">
+                                <tbody>
+                                    {% for field, value in entry.items %}
+                                        <tr>
+                                            <td style="text-align: left;">{{ field }}</td>
+                                            <td style="text-align: right;">{{ value }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% elif backend == "elfsectionheader" %}
+            <div class="card-group" style="margin-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">ELF Section Headers Table</div>
+                    {% for entry in report.data %}
+                        <div class="card-body" style="margin-top: 50px">
+                            <table class="table text-white" style="width: 30%; margin: auto;">
+                                <tbody>
+                                    {% for field, value in entry.items %}
+                                        <tr>
+                                            <td style="text-align: left;">{{ field }}</td>
+                                            <td style="text-align: right;">{{ value }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% elif backend == "capa" %}
+            <div class="card-group" style="margin-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">CAPA Capabilities</div>
+                    <div class="card-body" style="margin-top: 50px">
+                        {% if report.data.base_address %}
+                            <h5 class="text-white text-center" style="margin-bottom: 40px;">Base address: {{ report.data.base_address }}</h5>
+                            <table class="table text-white" style="width: 70%; margin: auto;">
+                                <thead>
+                                    <tr>
+                                        <th>Rule</th>
+                                        <th>Namespace</th>
+                                        <th>Matched Address</th>
+                                    </tr>
+                                </thead>
+                                {% for capa_entry in report.data.matches %}
+                                    <tbody>
+                                        <tr>
+                                            <td style="text-align: left;">{{ capa_entry.rule }}</td>
+                                            <td style="text-align: left;">{{ capa_entry.namespace }}</td>
+                                            <td style="text-align: left;">{{ capa_entry.addresses }}</td>
+                                        </tr>
+                                    </tbody>
+                                {% endfor %}
+                            </table>
+                        {% else %}
+                            <h5 class="text-danger text-center" style="margin-bottom: 40px;">{{ report.error_msg }}</h5>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "samplefeatures" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Sample Features</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="table-layout: fixed; width: 100%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Feature</th>
+                                    <th style="text-align: right;">Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for field, value in report.data.items %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ field }}</td>
+                                        <td style="text-align: right;">{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "staticantianalysis" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Anti-Analysis</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 50%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">Source</th>
+                                    <th style="text-align: right;">Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for field, value in report.data.items %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ field }}</td>
+                                        <td style="text-align: right;">{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "strings" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Strings</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">String</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "memstrings" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Memory Strings</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <tbody>
+                                {% for value in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "fileops" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Filesystem Operations</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>PID</th>
+                                    <th>Process Name</th>
+                                    <th>Function Name</th>
+                                    <th>Function Arguments</th>
+                                    <th>Return Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.ts }}</td>
+                                        <td style="text-align: left;">{{ entry.pid }}</td>
+                                        <td style="text-align: left;">{{ entry.procname }}</td>
+                                        <td style="text-align: left;">{{ entry.func }}</td>
+                                        <td style="text-align: left;" rowspan="{{ item|linebreaksbr }}">
+                                            {{ entry.args|linebreaksbr }}
+                                        </td>
+                                        <td style="text-align: left;">{{ entry.ret }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "procops" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Process Operations</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>PID</th>
+                                    <th>Process Name</th>
+                                    <th>Function Name</th>
+                                    <th>Function Arguments</th>
+                                    <th>Return Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.ts }}</td>
+                                        <td style="text-align: left;">{{ entry.pid }}</td>
+                                        <td style="text-align: left;">{{ entry.procname }}</td>
+                                        <td style="text-align: left;">{{ entry.func }}</td>
+                                        <td style="text-align: left;" rowspan="{{ item|linebreaksbr }}">
+                                            {{ entry.args|linebreaksbr }}
+                                        </td>
+                                        <td style="text-align: left;">{{ entry.ret }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "netops" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Network Operations</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>PID</th>
+                                    <th>Process Name</th>
+                                    <th>Function Name</th>
+                                    <th>Function Arguments</th>
+                                    <th>Return Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.ts }}</td>
+                                        <td style="text-align: left;">{{ entry.pid }}</td>
+                                        <td style="text-align: left;">{{ entry.procname }}</td>
+                                        <td style="text-align: left;">{{ entry.func }}</td>
+                                        <td style="text-align: left;" rowspan="{{ item|linebreaksbr }}">
+                                            {{ entry.args|linebreaksbr }}
+                                        </td>
+                                        <td style="text-align: left;">{{ entry.ret }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "userland" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Userland Operations</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Process Name</th>
+                                    <th>Function Name</th>
+                                    <th>Function Arguments</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.ts }}</td>
+                                        <td style="text-align: left;">{{ entry.procname }}</td>
+                                        <td style="text-align: left;">{{ entry.func }}</td>
+                                        <td style="text-align: left;" rowspan="{{ item|linebreaksbr }}">
+                                            {{ entry.args|linebreaksbr }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% elif backend == "droppedfiles" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Dropped Filenames</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <tbody>
+                                {% for value in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+    </div>
+{% endblock content %}

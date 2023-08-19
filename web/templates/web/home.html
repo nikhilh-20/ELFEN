@@ -1,0 +1,56 @@
+<!--
+Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+{% extends "web/base.html" %}
+{% block title %}: Home{% endblock title %}
+
+{% block content %}
+<div class="row row-cols-1 row-cols-md-1 g-2" style="padding-top: 50px">
+    <div class="col">
+        <div class="card text-white bg-dark border-0">
+            <div class="card-header text-center" style="font-size: 20px;"><b>Recent Tasks</b></div>
+            <div class="card-body overflow-auto">
+                <table class="table text-white" style="width: 40%; margin: auto;">
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Task UUID</th>
+                            <th style="text-align: left;">Start Time</th>
+                            <th style="text-align: left;">End Time</th>
+                            <th style="text-align: left;">SHA256</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in recent_tasks %}
+                            <tr>
+                                <td style="text-align: left;">
+                                    {{ entry.uuid }}
+                                    <a target="_blank"
+                                        href={% url "report" submission_uuid=entry.uuid %}>
+                                        <i class="bi bi-box-arrow-in-up-right"></i>
+                                    </a>
+                                </td>
+                                <td style="text-align: left;">{{ entry.start_time }} UTC</td>
+                                <td style="text-align: left;">{{ entry.end_time }} UTC</td>
+                                <td style="text-align: left;">{{ entry.sha256 }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

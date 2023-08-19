@@ -1,0 +1,56 @@
+<!--
+Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+{% extends "web/base.html" %}
+{% block title %}: Register{% endblock title %}
+
+{% block content %}
+<div class="d-flex justify-content-center py-5">
+    <div class="text-center" style="font-size: 25px;">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite;">Email:</label>
+                {{ form.email }}
+                <small style="color: red">{{ form.errors.email|striptags|escape }}</small>
+                <small class="text-muted">{{ form.email.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite;">Username:</label>
+                {{ form.username }}
+                <small style="color: red">{{ form.errors.username|striptags|escape }}</small>
+                <small class="text-muted">{{ form.username.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite;">Password:</label>
+                {{ form.password1 }}
+                <small style="color: red">{{ form.errors.password1|striptags|escape }}</small>
+                <small class="text-muted" style="text-align: left">{{ password_tips|unordered_list }}</small>
+            </div>
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite;">Confirm Password:</label>
+                {{ form.password2 }}
+                <small style="color:red; text-align: left">{{ form.errors.password2|escape }}</small>
+                <small class="text-muted">{{ form.password2.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
+                <button class="btn btn-primary btn-block m-4" type="submit">
+                  Register</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

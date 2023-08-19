@@ -1,0 +1,46 @@
+/*
+Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@font-face {
+    font-family: "ColonnaMT";
+    src: url("../fonts/colonna.ttf")
+}
+
+a.navbar-brand {
+    font-family: "ColonnaMT", serif;
+}
+
+span.part1 {
+    padding-left:30px;
+    font-size: 70px;
+    color: red;
+}
+
+span.part2 {
+    font-size: 55px;
+    padding-right: 60px;
+    color: antiquewhite;
+}
+
+.nav-link {
+    font-size: 17px;
+    color: antiquewhite;
+}
+
+.card .card-body {
+    color: antiquewhite;
+}

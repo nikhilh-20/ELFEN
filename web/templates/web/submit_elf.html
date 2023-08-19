@@ -1,0 +1,69 @@
+<!--
+Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+{% extends "web/base.html" %}
+{% block title %}: Submit ELF{% endblock title %}
+
+{% block content %}
+<div class="d-flex justify-content-center py-2">
+    <div class="text-center" style="font-size: 25px;">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Upload Sample</label>
+                {{ form.file }}
+                <small style="color: red">{{ form.errors.file|striptags|escape }}</small>
+                <small class="text-muted">{{ form.file.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Upload Dependencies</label>
+                {{ form.additional_files }}
+                <small style="color: red">{{ form.errors.additional_files|striptags|escape }}</small>
+                <small class="text-muted">{{ form.additional_files.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Execution Time</label>
+                {{ form.execution_time }}
+                <small style="color: red">{{ form.errors.execution_time|striptags|escape }}</small>
+                <small class="text-muted">{{ form.execution_time.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Execution Arguments</label>
+                {{ form.execution_arguments }}
+                <small style="color: red">{{ form.errors.execution_arguments|striptags|escape }}</small>
+                <small class="text-muted">{{ form.execution_arguments.help_text }}</small>
+            </div>
+            <div class="form-group py-3" style="margin-top: 35px;">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Userland Trace?</label>
+                {{ form.userland_tracing }}
+                <small style="color: red">{{ form.errors.userland_tracing|striptags|escape }}</small>
+                <small class="text-muted">{{ form.userland_tracing.help_text }}</small>
+            </div>
+            {% comment %}
+            <div class="form-group py-3">
+                {{ form.captcha }}
+                <small style="color: red">{{ form.errors.captcha|striptags|escape }}</small>
+                <small class="text-muted">{{ form.captcha.help_text }}</small>
+            </div>
+            {% endcomment %}
+            <div class="form-group py-3">
+                <button class="btn btn-primary btn-block m-4" type="submit">
+                  Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

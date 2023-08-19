@@ -1,0 +1,132 @@
+version: "3.1"
+services:
+    postgres:
+        build:
+            context: .
+            dockerfile: docker/postgres/Dockerfile
+        ports:
+            - "5432:5432"
+        user: 1000:1000 # Solves data directory permission issues
+        restart: "always"
+        healthcheck:
+            test: ["CMD", "pg_isready", "-U", "postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        volumes:
+            - ./data/postgres:/var/lib/postgresql/data
+
+    mysql:
+        build:
+            context: .
+            dockerfile: docker/mysql/Dockerfile
+        ports:
+            - "3306:3306"
+        restart: "always"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uelfen", "-pelfen"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        volumes:
+            - ./data/mysql:/var/lib/mysql
+
+    rabbitmq:
+        build: docker/rabbitmq/
+        hostname: "elfen_rabbitmq"
+        restart: "always"
+        healthcheck:
+            test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 3
+        volumes:
+            - ./data/rabbitmq:/var/lib/rabbitmq
+        depends_on:
+            - postgres
+            - mysql
+
+    elfen:
+        build:
+            context: .
+            dockerfile: docker/elfen/Dockerfile
+        image: elfen_image
+
+    celery_submission_worker:
+        image: elfen_image
+        command: celery -A ELFEN worker -l INFO -Q submission -n submission_analysis_worker --heartbeat-interval=30 --without-gossip --without-mingle
+        restart: "always"
+        volumes:
+            - ./media/web:/elfen/media/web
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+
+    celery_static_analysis_worker:
+        image: elfen_image
+        command: celery -A ELFEN worker -l INFO -Q static_analysis -n static_analysis_worker --heartbeat-interval=30 --without-gossip --without-mingle
+        restart: "always"
+        volumes:
+            - ./media/web:/elfen/media/web
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+
+    celery_dynamic_analysis_worker:
+        image: elfen_image
+        command: celery -A ELFEN worker -c 4 -l INFO -Q dynamic_analysis -n dynamic_analysis_worker --heartbeat-interval=120 --without-gossip --without-mingle
+        restart: "always"
+        privileged: True
+        volumes:
+            - ./media/web:/elfen/media/web
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+
+    celery_detection_analysis_worker:
+        image: elfen_image
+        command: celery -A ELFEN worker -l INFO -Q detection_analysis -n detection_analysis_worker --heartbeat-interval=120 --without-gossip --without-mingle
+        restart: "always"
+        privileged: True
+        volumes:
+            - ./media/web:/elfen/media/web
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+
+    flower:
+        image: elfen_image
+        command: celery -A ELFEN flower -l INFO
+        ports:
+            - "5555:5555"
+        depends_on:
+            - celery_submission_worker
+            - celery_static_analysis_worker
+            - celery_dynamic_analysis_worker
+            - celery_detection_analysis_worker
+
+    web:
+        image: elfen_image
+        command: docker/elfen/start.sh
+        restart: "always"
+        ports:
+            - "8000:8000"
+        volumes:
+            - .:/elfen
+        depends_on:
+            postgres:
+                condition: service_healthy
+            mysql:
+                condition: service_healthy
+            rabbitmq:
+                condition: service_healthy
+            celery_submission_worker:
+                condition: service_started
+            celery_static_analysis_worker:
+                condition: service_started
+            celery_dynamic_analysis_worker:
+                condition: service_started
+            celery_detection_analysis_worker:
+                condition: service_started
+            flower:
+                condition: service_started

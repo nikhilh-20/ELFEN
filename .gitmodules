@@ -1,0 +1,6 @@
+[submodule "rsrc/ELFEN_images"]
+	path = rsrc/ELFEN_images
+	url = git@github.com:nikhilh-20/ELFEN_images.git
+[submodule "rsrc/capa"]
+	path = rsrc/capa
+	url = git@github.com:mandiant/capa.git

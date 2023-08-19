@@ -1,0 +1,768 @@
+<!--
+Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+{% extends "web/base.html" %}
+{% load static %}
+{% block title %}: Analysis Report{% endblock title %}
+
+{% block content %}
+    {% if not_started %}
+        <div class="progress" style="margin-top: 40px; margin-left: 10px; margin-right: 10px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                 style="width: 100%;"></div>
+        </div>
+    {% else %}
+        {% if warning %}
+            <div class="banner" style="margin-top: 25px;">
+                <div class="container text-center">
+                    <div class="row">
+                        <h5 class="text-warning">{{ warning }}</h5>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div class="row row-cols-1 row-cols-md-3 g-4" style="padding-top: 50px">
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Start Time</b></div>
+                    <div class="card-body text-center">{{ task_start_time }} UTC </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>End Time</b></div>
+                    {% if task_end_time %}
+                        <div class="card-body text-center">{{ task_end_time }} UTC</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Task Status</b></div>
+                    {% if task_status == "Not Started" or task_status == "In Progress" %}
+                        <div class="card-body text-center text-warning">{{ task_status }}</div>
+                        <div class="progress" style="margin-top: 10px; margin-left: 30%; margin-right: 30%;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 style="width: 100%;"></div>
+                        </div>
+                    {% elif task_status == "Complete" %}
+                        <div class="card-body text-center text-success">{{ task_status }}</div>
+                    {% elif task_status == "Error" %}
+                        <div class="card-body text-center text-danger">{{ task_status }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% if error_msg %}
+                <div class="col">
+                    <div class="card text-white bg-dark border-0">
+                        <div class="card-header text-center" style="font-size: 20px;"><b>Task Error Message</b></div>
+                        <div class="card-body text-center text-danger">{{ error_msg }}</div>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>MD5</b></div>
+                    <div class="card-body text-center">{{ sample_metadata.md5 }}</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>SHA1</b></div>
+                    <div class="card-body text-center">{{ sample_metadata.sha1 }}</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>SHA256</b></div>
+                    <div class="card-body text-center">{{ sample_metadata.sha256 }}</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Architecture</b></div>
+                    {% if sample_metadata.arch %}
+                        <div class="card-body text-center">{{ sample_metadata.arch }}</div>
+                    {% else %}
+                        <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 style="width: 100%;"></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Endian</b></div>
+                    {% if sample_metadata.endian %}
+                        <div class="card-body text-center">{{ sample_metadata.endian }}</div>
+                    {% else %}
+                        <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 style="width: 100%;"></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Bitness</b></div>
+                    {% if sample_metadata.bitness %}
+                        <div class="card-body text-center">{{ sample_metadata.bitness }}</div>
+                    {% else %}
+                        <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 style="width: 100%;"></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Command-line</b></div>
+                    <div class="card-body text-center">{{ task_cmdline }}</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Score</b></div>
+                    {% if task_score < 30 %}
+                        <div class="card-body text-info fw-bold text-center">{{ task_score }}: Benign</div>
+                    {% elif task_score >= 30 and task_score < 70 %}
+                        <div class="card-body text-center fw-bold text-warning">{{ task_score }}: Suspicious </div>
+                    {% elif task_score >= 70 %}
+                        <div class="card-body text-center fw-bold text-danger">{{ task_score }}: Malicious </div>
+                    {% else %}
+                        <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                 style="width: 100%;"></div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Family</b></div>
+                    {% if family %}
+                        <div class="card-body text-center text-danger">{{ family|join:", " }}</div>
+                    {% else %}
+                        <div class="card-body text-center"></div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0" style="max-width: 100%; max-height: 85%;">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Console Output</b></div>
+                    {% if console_output %}
+                        <div class="card-body overflow-auto text-center text-info">{{ console_output }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0" style="max-width: 100%; max-height: 25%;">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>C2 Configuration</b></div>
+                    {% if data.dynamic.c2config.data %}
+                        <div class="card-body overflow-auto text-center text-info">{{ data.dynamic.c2config.data|join:"," }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0" style="max-width: 100%; max-height: 85%;">
+                    <div class="card-header text-center" style="font-size: 20px;"><b>Notes</b></div>
+                    {% if data.static.staticantiantianalysis.data.elflepton %}
+                        <div class="card-body overflow-auto text-center">
+                            <ul>
+                                <li>
+                                    <a href="https://github.com/nikhilh-20/lepton">ELFLepton</a> found corruptions in
+                                    the ELF header and tried to fix them before performing static analysis.
+                                    See Anti-Analysis section for more details on the ELF header corruption.
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card-group" style="padding-top: 50px">
+            <div class="card text-white bg-dark border-0">
+                <div class="card-header text-center" style="font-size: 25px;"><b>Detection</b></div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4" style="margin-top: 20px;">
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.detection.behavioraldetection.status == "Not Started" or data.detection.behavioraldetection.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Behavioral Detection
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.detection.behavioraldetection.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Behavioral Detection</span>
+                            {% elif data.detection.behavioraldetection.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Behavioral Detection</span>
+                            {% endif %}
+                            <a data-bs-toggle="collapse" href="#behavioraldetection_collapse">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="behavioraldetection" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                        <div class="collapse" id="behavioraldetection_collapse">
+                            <div class="card-group" style="padding-top: 50px">
+                                <div class="card text-white bg-dark border-0">
+                                    <div class="card-body overflow-auto">
+                                        <table class="table text-white" style="width: 55%; margin: auto;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: left;">Detector</th>
+                                                    <th style="text-align: right;">Score</th>
+                                                    <th style="text-align: right;">Description</th>
+                                                    <th style="text-align: right;">Author</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for entry in data.detection.behavioraldetection.data %}
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ entry.name }}</td>
+                                                        {% if entry.score < 30 %}
+                                                            <td class="text-info" style="text-align: right;">{{ entry.score }}</td>
+                                                        {% elif entry.score >= 30 and entry.score < 70 %}
+                                                            <td class="text-warning" style="text-align: right;">{{ entry.score }}</td>
+                                                        {% elif entry.score >= 70 %}
+                                                            <td class="text-danger" style="text-align: right;">{{ entry.score }}</td>
+                                                        {% else %}
+                                                            <td class="text-danger" style="text-align: right;"></td>
+                                                        {% endif %}
+                                                        <td style="text-align: left;">{{ entry.description }}</td>
+                                                        <td style="text-align: left;">{{ entry.author }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.detection.staticdetection.status == "Not Started" or data.detection.staticdetection.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Static Detection
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.detection.staticdetection.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Static Detection</span>
+                            {% elif data.detection.staticdetection.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Static Detection</span>
+                            {% endif %}
+                            <a data-bs-toggle="collapse" href="#staticdetection_collapse">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="staticdetection" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                        <div class="collapse" id="staticdetection_collapse">
+                            <div class="card-group" style="padding-top: 50px">
+                                <div class="card text-white bg-dark border-0">
+                                    <div class="card-body overflow-auto">
+                                        <table class="table text-white" style="width: 55%; margin: auto;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: left;">Detector</th>
+                                                    <th style="text-align: right;">Score</th>
+                                                    <th style="text-align: right;">Description</th>
+                                                    <th style="text-align: right;">Author</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for entry in data.detection.staticdetection.data %}
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ entry.name }}</td>
+                                                        {% if entry.score < 30 %}
+                                                            <td class="text-info" style="text-align: right;">{{ entry.score }}</td>
+                                                        {% elif entry.score >= 30 and entry.score < 70 %}
+                                                            <td class="text-warning" style="text-align: right;">{{ entry.score }}</td>
+                                                        {% elif entry.score >= 70 %}
+                                                            <td class="text-danger" style="text-align: right;">{{ entry.score }}</td>
+                                                        {% else %}
+                                                            <td class="text-danger" style="text-align: right;"></td>
+                                                        {% endif %}
+                                                        <td style="text-align: left;">{{ entry.description }}</td>
+                                                        <td style="text-align: left;">{{ entry.author }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-group" style="padding-top: 50px">
+            <div class="card text-white bg-dark border-0">
+                <div class="card-header text-center" style="font-size: 25px;"><b>Static Analysis</b></div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4" style="margin-top: 20px;">
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.elfheader.status == "Not Started" or data.static.elfheader.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                ELF Header
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.elfheader.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">ELF Header</span>
+                            {% elif data.static.elfheader.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">ELF Header</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="elfheader" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.elfprogheader.status == "Not Started" or data.static.elfprogheader.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                ELF Program Headers Table
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.elfprogheader.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">ELF Program Headers Table</span>
+                            {% elif data.static.elfprogheader.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">ELF Program Headers Table</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="elfprogheader" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.elfsectionheader.status == "Not Started" or data.static.elfsectionheader.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                ELF Section Headers Table
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.elfsectionheader.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">ELF Section Headers Table</span>
+                            {% elif data.static.elfsectionheader.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">ELF Section Headers Table</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="elfsectionheader" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.capa.status == "Not Started" or data.static.capa.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                CAPA
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.capa.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">CAPA</span>
+                            {% elif data.static.capa.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">CAPA</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="capa" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.staticantianalysis.status == "Not Started" or data.static.staticantianalysis.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Anti-Analysis
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.staticantianalysis.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Anti-Analysis</span>
+                            {% elif data.static.staticantianalysis.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Anti-Analysis</span>
+                            {% endif %}
+                            <a data-bs-toggle="collapse" href="#staticantianalysis_collapse">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="staticantianalysis" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                        <div class="collapse" id="staticantianalysis_collapse">
+                            <div class="card-group" style="padding-top: 50px">
+                                <div class="card text-white bg-dark border-0">
+                                    <div class="card-body overflow-auto">
+                                        <table class="table text-white" style="width: 70%; margin: auto;">
+                                            <tbody>
+                                                {% for field, value in data.static.staticantianalysis.data.items %}
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ field }}</td>
+                                                        <td style="text-align: right;">{{ value }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.samplefeatures.status == "Not Started" or data.static.samplefeatures.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Sample Features
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.samplefeatures.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Sample Features</span>
+                            {% elif data.static.samplefeatures.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Sample Features</span>
+                            {% endif %}
+                            <a data-bs-toggle="collapse" href="#samplefeatures_collapse">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="samplefeatures" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                        <div class="collapse" id="samplefeatures_collapse">
+                            <div class="card-group" style="padding-top: 50px">
+                                <div class="card text-white bg-dark border-0">
+                                    <div class="card-body overflow-auto">
+                                        <table class="table text-white" style="table-layout: fixed; width: 100%; margin: auto;">
+                                            <thead>
+                                                <tr>
+                                                    <th style="text-align: left;">Feature</th>
+                                                    <th style="text-align: right;">Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for field, value in data.static.samplefeatures.data.items %}
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ field }}</td>
+                                                        <td style="text-align: right;">{{ value }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-group" style="padding-top: 50px">
+            <div class="card text-white bg-dark border-0">
+                <div class="card-header text-center" style="font-size: 25px;"><b>Dynamic Analysis</b></div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4" style="margin-top: 20px;">
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.dynamic.fileops.status == "Not Started" or data.dynamic.fileops.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                File Operations
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.dynamic.fileops.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">File Operations</span>
+                            {% elif data.dynamic.fileops.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">File Operations</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="fileops" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.dynamic.procops.status == "Not Started" or data.dynamic.procops.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Process Operations
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.dynamic.procops.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Process Operations</span>
+                            {% elif data.dynamic.procops.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Process Operations</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="procops" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.dynamic.netops.status == "Not Started" or data.dynamic.netops.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Network Operations
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.dynamic.netops.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Network Operations</span>
+                            {% elif data.dynamic.netops.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Network Operations</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="netops" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.dynamic.userland.status == "Not Started" or data.dynamic.userland.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Userland Operations
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.dynamic.userland.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Userland Operations</span>
+                            {% elif data.dynamic.userland.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Userland Operations</span>
+                            {% endif %}
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="userland" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.dynamic.droppedfiles.status == "Not Started" or data.dynamic.droppedfiles.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Dropped Files
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.dynamic.droppedfiles.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Dropped Files</span>
+                            {% elif data.dynamic.droppedfiles.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Dropped Files</span>
+                            {% endif %}
+                            <a href={% url "artifact_download" submission_uuid=submission_uuid backend="droppedfiles" %}>
+                                <i class="bi bi-download"></i>
+                            </a>
+                            <a data-bs-toggle="collapse" href="#droppedfiles_collapse">
+                                <i class="bi bi-caret-down-fill"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="droppedfiles" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                        <div class="collapse" id="droppedfiles_collapse">
+                            <div class="card-group" style="padding-top: 25px">
+                                <div class="card text-white bg-dark border-0">
+                                    <div class="card-body overflow-auto">
+                                        <table class="table text-white" style="width: 60%; margin: auto;">
+                                            <tbody>
+                                                {% for value in data.dynamic.droppedfiles.data %}
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ value }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-group" style="padding-top: 50px">
+            <div class="card text-white bg-dark border-0">
+                <div class="card-header text-center" style="font-size: 25px;"><b>Strings</b></div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4" style="margin-top: 20px;">
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.static.strings.status == "Not Started" or data.static.strings.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Strings
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.static.strings.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Strings</span>
+                            {% elif data.static.strings.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Strings</span>
+                            {% endif %}
+                            <a href={% url "artifact_download" submission_uuid=submission_uuid backend="strings" %}>
+                                <i class="bi bi-download"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="strings" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.dynamic.memstrings.status == "Not Started" or data.dynamic.memstrings.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                Memory Strings
+                            </span>
+                            <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                     style="width: 100%;"></div>
+                            </div>
+                        {% else %}
+                            {% if data.dynamic.memstrings.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">Memory Strings</span>
+                            {% elif data.dynamic.memstrings.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">Memory Strings</span>
+                            {% endif %}
+                            <a href={% url "artifact_download" submission_uuid=submission_uuid backend="memstrings" %}>
+                                <i class="bi bi-download"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="memstrings" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock content %}
