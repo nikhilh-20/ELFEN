@@ -40,7 +40,14 @@ def get_my_tasks_info():
     for t in top_n:
         uuid = t.uuid
         start_time = t.start_time.strftime("%m/%d/%Y %H-%M-%S")
-        end_time = t.end_time.strftime("%m/%d/%Y %H-%M-%S")
+
+        if t.end_time:
+            end_time = t.end_time.strftime("%m/%d/%Y %H-%M-%S")
+        else:
+            # Task is still running or some other error caused end_time
+            # to not be updated
+            end_time = ""
+
         sha256 = t.sha256.sha256
         info.append({
             "uuid": uuid, "start_time": start_time,

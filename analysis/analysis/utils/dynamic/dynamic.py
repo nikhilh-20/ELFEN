@@ -105,12 +105,14 @@ def read_tracers(tracers):
     return kernel_tracings, userland_tracings
 
 
-def extract_kernel_tracings_features(sample_filename, features, sorted_kernel_tracings):
+def extract_kernel_tracings_features(sample_filename, endian, features, sorted_kernel_tracings):
     """
     Extract features from kernel tracings
 
     :param sample_filename: Sample filename in sandbox
     :type sample_filename: str
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param features: Dictionary to populate with features
     :type features: dict
     :param sorted_kernel_tracings: Timestamp sorted list of all kernel tracings
@@ -158,7 +160,7 @@ def extract_kernel_tracings_features(sample_filename, features, sorted_kernel_tr
                 "pid": pid,
                 "procname": procname
             }
-            feature_ = globals()[f"extract_{func_utf}_features"](trace_line, feature_)
+            feature_ = globals()[f"extract_{func_utf}_features"](trace_line, endian, feature_)
         except (ValueError, KeyError) as err:
             LOG.error(f"Error while kernel behavior feature extraction: {err}. Trace line: {trace_line}")
             # Corruption in trace line. Skip
@@ -218,8 +220,8 @@ def extract_userland_tracings_features(features, sorted_userland_tracings):
     return features
 
 
-def extract_features(sample_filename, console_out, sorted_kernel_tracings,
-                     sorted_userland_tracings):
+def extract_features(sample_filename, console_out, endian,
+                     sorted_kernel_tracings, sorted_userland_tracings):
     """
     Extract features from all tracings.
 
@@ -227,6 +229,8 @@ def extract_features(sample_filename, console_out, sorted_kernel_tracings,
     :type sample_filename: str
     :param console_out: Console output of sample
     :type console_out: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param sorted_kernel_tracings: Timestamp sorted list of all kernel tracings
     :type sorted_kernel_tracings: list of bytes
     :param sorted_userland_tracings: Timestamp sorted list of all userland tracings
@@ -252,16 +256,18 @@ def extract_features(sample_filename, console_out, sorted_kernel_tracings,
         }
     }
 
-    features = extract_kernel_tracings_features(sample_filename, features, sorted_kernel_tracings)
+    features = extract_kernel_tracings_features(sample_filename, endian, features, sorted_kernel_tracings)
     return extract_userland_tracings_features(features, sorted_userland_tracings)
 
 
-def analyze_trace(sample, dynamic_analysis_dir, task_reports):
+def analyze_trace(sample, endian, dynamic_analysis_dir, task_reports):
     """
     Analyze the behavior of .trace files generated during dynamic analysis.
 
     :param sample: Sample object
     :type sample: web.models.SampleMetadata
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param dynamic_analysis_dir: Host path where dynamic analysis artifacts
                                  will be stored
     :type dynamic_analysis_dir: str
@@ -307,7 +313,7 @@ def analyze_trace(sample, dynamic_analysis_dir, task_reports):
         sorted_kernel_tracings, sorted_userland_tracings = [], []
 
     # Extract features from all tracings
-    behavioral_features = extract_features(sample_filename, console_out,
+    behavioral_features = extract_features(sample_filename, console_out, endian,
                                            sorted_kernel_tracings,
                                            sorted_userland_tracings)
 

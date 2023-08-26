@@ -332,7 +332,7 @@ def start_analysis(context):
     dynamic_analysis_report.memstrings = memstrings
     dynamic_analysis_report.save(update_fields=["memstrings"])
 
-    dynamic_analysis_report = analyze_trace(sample, dynamic_analysis_dir, task_reports)
+    dynamic_analysis_report = analyze_trace(sample, endian, dynamic_analysis_dir, task_reports)
 
     if dynamic_analysis_report:
         dynamic_analysis_report.status = TaskStatus.COMPLETE

@@ -394,7 +394,7 @@ def extract_strncpy_features(strncpy_trace_line, feature_=None):
     return feature_
 
 
-def extract_fork_features(fork_trace_line, feature_=None):
+def extract_fork_features(fork_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a fork syscall, extract child process PID.
 
@@ -405,6 +405,8 @@ def extract_fork_features(fork_trace_line, feature_=None):
 
     :param fork_trace_line: Trace line for fork syscall
     :type fork_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -426,7 +428,7 @@ def extract_fork_features(fork_trace_line, feature_=None):
     return feature_
 
 
-def extract_getpid_features(getpid_trace_line, feature_=None):
+def extract_getpid_features(getpid_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a getpid syscall, extract current process ID
 
@@ -437,6 +439,8 @@ def extract_getpid_features(getpid_trace_line, feature_=None):
 
     :param getpid_trace_line: Trace line for getpid syscall
     :type getpid_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -458,7 +462,7 @@ def extract_getpid_features(getpid_trace_line, feature_=None):
     return feature_
 
 
-def extract_getppid_features(getppid_trace_line, feature_=None):
+def extract_getppid_features(getppid_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a getppid syscall, extract parent process ID
 
@@ -469,6 +473,8 @@ def extract_getppid_features(getppid_trace_line, feature_=None):
 
     :param getppid_trace_line: Trace line for getppid syscall
     :type getppid_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -490,7 +496,7 @@ def extract_getppid_features(getppid_trace_line, feature_=None):
     return feature_
 
 
-def extract_execve_features(execve_trace_line, feature_=None):
+def extract_execve_features(execve_trace_line, endian=None, feature_=None):
     """
     Given a trace line for an execve syscall, extract executed file path
 
@@ -501,6 +507,8 @@ def extract_execve_features(execve_trace_line, feature_=None):
 
     :param execve_trace_line: Trace line for execve syscall
     :type execve_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -525,7 +533,7 @@ def extract_execve_features(execve_trace_line, feature_=None):
     return feature_
 
 
-def extract_prctl_features(prctl_trace_line, feature_=None):
+def extract_prctl_features(prctl_trace_line, endian=None, feature_=None):
     """
     Given a trace line for prctl syscall, extract option, arg2 and
     other arguments, if applicable.
@@ -537,6 +545,8 @@ def extract_prctl_features(prctl_trace_line, feature_=None):
 
     :param prctl_trace_line: Trace line for prctl syscall
     :type prctl_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -574,7 +584,7 @@ def extract_prctl_features(prctl_trace_line, feature_=None):
     return feature_
 
 
-def extract_read_features(read_trace_line, feature_=None):
+def extract_read_features(read_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a read syscall, extract relevant features:
     File descriptor, Buffer, Number of bytes to read
@@ -586,6 +596,8 @@ def extract_read_features(read_trace_line, feature_=None):
 
     :param read_trace_line: Trace line for read syscall
     :type read_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -615,7 +627,7 @@ def extract_read_features(read_trace_line, feature_=None):
     return feature_
 
 
-def extract_write_features(write_trace_line, feature_=None):
+def extract_write_features(write_trace_line, endian=None, feature_=None):
     """
     Given a trace line for write syscall, extract relevant features:
     File descriptor, Buffer, Number of bytes to write
@@ -627,6 +639,8 @@ def extract_write_features(write_trace_line, feature_=None):
 
     :param write_trace_line: Trace line for write syscall
     :type write_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -656,7 +670,7 @@ def extract_write_features(write_trace_line, feature_=None):
     return feature_
 
 
-def extract_readlink_features(readlink_trace_line, feature_=None):
+def extract_readlink_features(readlink_trace_line, endian=None, feature_=None):
     """
     Given a trace line for readlink syscall, extract relevant features:
     file_path, buffer, retval
@@ -668,6 +682,8 @@ def extract_readlink_features(readlink_trace_line, feature_=None):
 
     :param readlink_trace_line: Trace line for readlink syscall
     :type readlink_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, timestamp, PID, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -697,7 +713,7 @@ def extract_readlink_features(readlink_trace_line, feature_=None):
     return feature_
 
 
-def extract_unlink_features(unlink_trace_line, feature_=None):
+def extract_unlink_features(unlink_trace_line, endian=None, feature_=None):
     """
     Given a trace line for unlink syscall, extract file_path
 
@@ -708,6 +724,8 @@ def extract_unlink_features(unlink_trace_line, feature_=None):
 
     :param unlink_trace_line: Trace line for unlink syscall
     :type unlink_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -731,7 +749,7 @@ def extract_unlink_features(unlink_trace_line, feature_=None):
     return feature_
 
 
-def extract_open_features(open_trace_line, feature_=None):
+def extract_open_features(open_trace_line, endian=None, feature_=None):
     """
     Given a trace line for an open syscall, extract relevant features:
     File path, Flags, File descriptor
@@ -743,6 +761,8 @@ def extract_open_features(open_trace_line, feature_=None):
 
     :param open_trace_line: Trace line for open syscall
     :type open_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -768,7 +788,7 @@ def extract_open_features(open_trace_line, feature_=None):
     return feature_
 
 
-def extract_rename_features(rename_trace_line, feature_=None):
+def extract_rename_features(rename_trace_line, endian=None, feature_=None):
     """
     Given a trace line for unlink syscall, extract file_path
 
@@ -779,6 +799,8 @@ def extract_rename_features(rename_trace_line, feature_=None):
 
     :param rename_trace_line: Trace line for rename syscall
     :type rename_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -803,7 +825,7 @@ def extract_rename_features(rename_trace_line, feature_=None):
     return feature_
 
 
-def extract_fcntl_features(fcntl_trace_line, feature_=None):
+def extract_fcntl_features(fcntl_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a fcntl syscall, extract relevant features:
     File descriptor, Command, Argument
@@ -815,6 +837,8 @@ def extract_fcntl_features(fcntl_trace_line, feature_=None):
 
     :param fcntl_trace_line: Trace line for fcntl syscall
     :type fcntl_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -840,7 +864,7 @@ def extract_fcntl_features(fcntl_trace_line, feature_=None):
     return feature_
 
 
-def extract_socket_features(socket_trace_line, feature_=None):
+def extract_socket_features(socket_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a socket syscall, extract relevant features:
     domain, type, protocol, socket fd
@@ -852,6 +876,8 @@ def extract_socket_features(socket_trace_line, feature_=None):
 
     :param socket_trace_line: Trace line for socket syscall
     :type socket_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -879,7 +905,7 @@ def extract_socket_features(socket_trace_line, feature_=None):
     return feature_
 
 
-def extract_setsockopt_features(setsockopt_trace_line, feature_=None):
+def extract_setsockopt_features(setsockopt_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a setsockopt syscall, extract relevant features:
     socket fd, level, option_name, option_value
@@ -891,6 +917,8 @@ def extract_setsockopt_features(setsockopt_trace_line, feature_=None):
 
     :param setsockopt_trace_line: Trace line for setsockopt syscall
     :type setsockopt_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -919,7 +947,7 @@ def extract_setsockopt_features(setsockopt_trace_line, feature_=None):
     return feature_
 
 
-def extract_bind_features(bind_trace_line, feature_=None):
+def extract_bind_features(bind_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a bind syscall, extract relevant features:
     socket fd, address family, port, ip, return value.
@@ -932,6 +960,8 @@ def extract_bind_features(bind_trace_line, feature_=None):
 
     :param bind_trace_line: Trace line for bind syscall
     :type bind_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -942,9 +972,12 @@ def extract_bind_features(bind_trace_line, feature_=None):
     tokens = bind_trace_line.strip(b"\n").split(b",")
 
     try:
-        # Both are in network byte order (big-endian)
-        ip = socket.inet_ntoa(struct.pack("<L", int(tokens[6])))
-        port = socket.ntohs(int(tokens[7]))
+        if endian == "BE":
+            ip = socket.inet_ntoa(struct.pack("!L", int(tokens[6])))
+            port = int(tokens[7])
+        else:
+            ip = socket.inet_ntoa(struct.pack("<L", int(tokens[6])))
+            port = socket.ntohs(int(tokens[7]))
 
         feature_.update({
             "fd": int(tokens[4]),
@@ -964,7 +997,7 @@ def extract_bind_features(bind_trace_line, feature_=None):
     return feature_
 
 
-def extract_connect_features(connect_trace_line, feature_=None):
+def extract_connect_features(connect_trace_line, endian=None, feature_=None):
     """
     Given a trace line for connect syscall, extract relevant features:
     socket fd, address family, port, ip, return value.
@@ -977,6 +1010,8 @@ def extract_connect_features(connect_trace_line, feature_=None):
 
     :param connect_trace_line: Trace line for connect syscall
     :type connect_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features
@@ -987,9 +1022,12 @@ def extract_connect_features(connect_trace_line, feature_=None):
     tokens = connect_trace_line.strip(b"\n").split(b",")
 
     try:
-        # Both are in network byte order (big-endian)
-        ip = socket.inet_ntoa(struct.pack("<L", int(tokens[6])))
-        port = socket.ntohs(int(tokens[7]))
+        if endian == "BE":
+            ip = socket.inet_ntoa(struct.pack("!L", int(tokens[6])))
+            port = int(tokens[7])
+        else:
+            ip = socket.inet_ntoa(struct.pack("<L", int(tokens[6])))
+            port = socket.ntohs(int(tokens[7]))
 
         feature_.update({
             "fd": int(tokens[4]),
@@ -1009,7 +1047,7 @@ def extract_connect_features(connect_trace_line, feature_=None):
     return feature_
 
 
-def extract_listen_features(listen_trace_line, feature_=None):
+def extract_listen_features(listen_trace_line, endian=None, feature_=None):
     """
     Given a trace line for a listen syscall, extract relevant features:
     socket fd, backlog.
@@ -1021,6 +1059,8 @@ def extract_listen_features(listen_trace_line, feature_=None):
 
     :param listen_trace_line: Trace line for listen syscall
     :type listen_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
     :param feature_: Already extracted features: event name, PID, timestamp, process name
     :type feature_: dict
     :return: Additional extracted features

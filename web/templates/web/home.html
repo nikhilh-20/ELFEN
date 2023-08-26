@@ -43,7 +43,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                     </a>
                                 </td>
                                 <td style="text-align: left;">{{ entry.start_time }} UTC</td>
-                                <td style="text-align: left;">{{ entry.end_time }} UTC</td>
+				                {% if entry.end_time %}
+                                    <td style="text-align: left;">{{ entry.end_time }} UTC</td>
+                                {% else %}
+                                    <td style="text-align: left;"></td>
+				                {% endif %}
                                 <td style="text-align: left;">{{ entry.sha256 }}</td>
                             </tr>
                         {% endfor %}
