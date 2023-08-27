@@ -129,10 +129,10 @@ def extract_store_c2(parent_task):
 
     for obj in objs:
         c2_ip = obj.ip
-        # Filter out Google DNS (8.8.8.8), localhost (127.0.0.1),
+        # Filter out Google DNS (8.8.8.8, 8.8.4.4), localhost (127.0.0.1),
         # broadcast (255.255.255.255), self-assigned (0.0.0.0)
         # These aren't considered to be part of C2 configuration
-        if c2_ip in ("8.8.8.8", "127.0.0.1", "255.255.255.255", "0.0.0.0"):
+        if c2_ip in ("8.8.8.8", "8.8.4.4", "127.0.0.1", "255.255.255.255", "0.0.0.0"):
             continue
 
         c2_port = obj.port
