@@ -10,6 +10,12 @@ Currently, ELFEN supports the analysis of ELF binaries for the following archite
 
 ## Getting Started
 
+### Prerequisite
+
+Install docker and docker compose from https://docs.docker.com/engine/install/ubuntu/
+
+### Setup
+
 1. Clone the ELFEN repository
 
 ```bash
@@ -37,8 +43,8 @@ keylen = 60
         * Ensure changes, if any, are also mirrored to `ELFEN/settings.py#L134`
 
 4. ELFEN requires the following ports to be free/available on the host:
-    * 5555 (Flower service)
-    * 8000 (ELFEN web service)
+    * `5555` (Flower service)
+    * `8000` (ELFEN web service)
 
 5. Create required directories in ELFEN root directory.
     * Databases and RabbitMQ data storage
@@ -62,8 +68,18 @@ $ docker compose build
 
 7. Bring up ELFEN services.
 
-```
+```bash
 $ docker compose up
+...
+...
+elfen-web-1                               | Performing system checks...
+elfen-web-1                               | 
+elfen-web-1                               | 
+elfen-web-1                               | System check identified no issues (0 silenced).
+elfen-web-1                               | August 31, 2023 - 10:46:41
+elfen-web-1                               | Django version 4.1.7, using settings 'ELFEN.settings'
+elfen-web-1                               | Starting development server at http://0.0.0.0:8000/
+elfen-web-1                               | Quit the server with CONTROL-C.
 ```
 
 A Django superuser, `admin` is also created with password `admin`. ELFEN should now be available on the host at http://127.0.0.1:8000 in **debug** mode.
@@ -83,6 +99,27 @@ Codename:	jammy
 
 $ uname -a
 Linux oni 6.2.0-26-generic #26~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul 13 16:27:29 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+```
+
+### Known Errors
+
+When you `docker compose up` the second time onwards, you will see the following docker logs:
+
+```bash
+...
+elfen-web-1                               | IntegrityError: 
+elfen-web-1                               | (1062, "Duplicate entry 'admin' for key 'auth_user.username'")
+...
+```
+
+This is okay. I use a dirty script which creates an `admin` superuser on startup but does not check if that superuser already exists. All you need to check is if the following docker logs come up:
+
+```bash
+elfen-web-1                               | System check identified no issues (0 silenced).
+elfen-web-1                               | August 31, 2023 - 10:48:00
+elfen-web-1                               | Django version 4.1.7, using settings 'ELFEN.settings'
+elfen-web-1                               | Starting development server at http://0.0.0.0:8000/
+elfen-web-1                               | Quit the server with CONTROL-C.
 ```
 
 ## API
