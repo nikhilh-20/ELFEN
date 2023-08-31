@@ -4,8 +4,6 @@ services:
         build:
             context: .
             dockerfile: docker/postgres/Dockerfile
-        ports:
-            - "5432:5432"
         user: 1000:1000 # Solves data directory permission issues
         restart: "always"
         healthcheck:
@@ -20,8 +18,6 @@ services:
         build:
             context: .
             dockerfile: docker/mysql/Dockerfile
-        ports:
-            - "3306:3306"
         restart: "always"
         healthcheck:
             test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uelfen", "-pelfen"]

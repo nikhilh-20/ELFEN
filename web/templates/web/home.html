@@ -29,6 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                             <th style="text-align: left;">Task UUID</th>
                             <th style="text-align: left;">Start Time</th>
                             <th style="text-align: left;">End Time</th>
+                            <th style="text-align: left;">Score</th>
                             <th style="text-align: left;">SHA256</th>
                         </tr>
                     </thead>
@@ -48,6 +49,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                 {% else %}
                                     <td style="text-align: left;"></td>
 				                {% endif %}
+                                {% if entry.score < 30 %}
+                                    <td class="text-info" style="text-align: right;">{{ entry.score }}</td>
+                                {% elif entry.score >= 30 and entry.score < 70 %}
+                                    <td class="text-warning" style="text-align: right;">{{ entry.score }}</td>
+                                {% elif entry.score >= 70 %}
+                                    <td class="text-danger" style="text-align: right;">{{ entry.score }}</td>
+                                {% else %}
+                                    <td class="text-info" style="text-align: right;"></td>
+                                {% endif %}
                                 <td style="text-align: left;">{{ entry.sha256 }}</td>
                             </tr>
                         {% endfor %}

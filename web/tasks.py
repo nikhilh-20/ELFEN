@@ -48,10 +48,16 @@ def get_my_tasks_info():
             # to not be updated
             end_time = ""
 
+        if t.detection and t.detection.score is not None:
+            score = t.detection.score
+        else:
+            score = None
+
         sha256 = t.sha256.sha256
         info.append({
             "uuid": uuid, "start_time": start_time,
-            "end_time": end_time, "sha256": sha256
+            "end_time": end_time, "score": score,
+            "sha256": sha256
         })
 
     return info
@@ -61,7 +67,7 @@ def get_my_tasks_info():
 def start_analysis(context):
     """
     This function begins analysis with the first step: extract sample
-    metadata and dump it into elfen_db. Then it enters the main analysis
+    metadata and dump it into the DB. Then it enters the main analysis
     pipeline.
 
     :param context: A dictionary containing username, user-submitted form
