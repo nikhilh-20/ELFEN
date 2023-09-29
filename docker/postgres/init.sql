@@ -21,3 +21,5 @@ ALTER DATABASE elfen_db OWNER to elfen;
 ALTER ROLE elfen SET client_encoding to "utf8";
 ALTER ROLE elfen SET default_transaction_isolation TO "read committed";
 GRANT ALL PRIVILEGES ON DATABASE elfen_db TO elfen;
+/* elfen needs this privilege to create the test DB for Django unit tests */
+ALTER USER elfen CREATEDB;

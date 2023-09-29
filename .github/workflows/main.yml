@@ -1,0 +1,20 @@
+name: ELFEN CIT
+on:
+  pull_request:
+    branches: main
+jobs:
+  cit:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Get current user UID and GID
+        run: id -u && id -g
+      - name: Get Current Directory Listing
+        run: ls -l
+      - name: Creating required directories
+        run: mkdir data && cd data &&
+             mkdir mysql postgres rabbitmq && cd .. &&
+             ls -lR data/
+      - name: Rise ELFEN
+        run: docker compose up -d
