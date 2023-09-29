@@ -60,16 +60,28 @@ rabbitmq
 $ mkdir -p media/web
 ```
 
-6. Build the ELFEN docker system.
+6. Modify the `docker-compose.user.yml` to contain your UID and GID. By default, both are set to `1000:1000`.
+
+```bash
+# UID
+$ id -u
+1000
+
+# GID
+$ id -g
+1000
+```
+
+7. Build the ELFEN docker system.
 
 ```bash
 $ docker compose build
 ```
 
-7. Bring up ELFEN services.
+8. Bring up ELFEN services.
 
 ```bash
-$ docker compose up
+$ docker compose -f docker-compose.yml -f docker-compose.user.yml up
 ...
 ...
 elfen-web-1                               | Performing system checks...

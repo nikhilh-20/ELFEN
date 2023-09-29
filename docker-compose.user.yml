@@ -1,0 +1,5 @@
+version: "3.1"
+services:
+    postgres:
+        # Solve data directory permission issue during build
+        user: 1000:1000

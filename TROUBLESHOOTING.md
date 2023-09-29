@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This document goes over some initial troubleshooting steps that you can take when encountering failures in ELFEN. This will evolve over time as more users report issues.
+This document goes over some initial troubleshooting steps that you can take when encountering failures in ELFEN. This will evolve over time as more users report issues. At the same time, some issues may also become outdated as ELFEN code evolves.
 
 ### Issue 1
 

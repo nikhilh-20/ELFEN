@@ -4,7 +4,6 @@ services:
         build:
             context: .
             dockerfile: docker/postgres/Dockerfile
-        user: 1000:1000 # Solves data directory permission issues
         restart: "always"
         healthcheck:
             test: ["CMD", "pg_isready", "-U", "postgres"]
