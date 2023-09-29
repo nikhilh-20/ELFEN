@@ -19,3 +19,6 @@ ENV MYSQL_ROOT_PASSWORD="mysqlsecretpwd"
 ENV MYSQL_DATABASE="elfen_db"
 ENV MYSQL_USER="elfen"
 ENV MYSQL_PASSWORD="elfen"
+
+COPY docker/mysql/init.sh /docker-entrypoint-initdb.d/
+RUN chmod +x /docker-entrypoint-initdb.d/init.sh
