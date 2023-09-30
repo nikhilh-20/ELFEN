@@ -21,13 +21,9 @@ class ELFProgramHeaderTestCase(TestCase):
             sha1=cls.sha1,
             sha256=cls.sha256,
         )
-
-    def test_elfprogramheader_create(self):
-        """
-        This test creates an entry in the ELFProgramHeader table.
-        """
+        # Below serves as object creation test case
         ELFProgramHeader.objects.create(
-            sample=self.sample,
+            sample=cls.sample,
             p_type=["PT_PHDR", "PT_INTERP"],
             p_offset=[64, 736],
             p_flags=[4, 4],
@@ -42,17 +38,7 @@ class ELFProgramHeaderTestCase(TestCase):
         """
         This test updates an entry in the ELFProgramHeader table.
         """
-        ephdr = ELFProgramHeader.objects.create(
-            sample=self.sample,
-            p_type=["PT_PHDR", "PT_INTERP"],
-            p_offset=[64, 726],
-            p_flags=[4, 6],
-            p_vaddr=[64, 236],
-            p_paddr=[64, 236],
-            p_filesz=[672, 18],
-            p_memsz=[672, 18],
-            p_align=[8, 1]
-        )
+        ephdr = ELFProgramHeader.objects.get(sample=self.sample)
 
         updated_p_type = ["PT_PHDR", "PT_DYNAMIC"]
         ephdr.p_type = updated_p_type
@@ -65,17 +51,7 @@ class ELFProgramHeaderTestCase(TestCase):
         """
         This test deletes an entry in the ELFProgramHeader table.
         """
-        ephdr = ELFProgramHeader.objects.create(
-            sample=self.sample,
-            p_type=["PT_PHDR", "PT_INTERP"],
-            p_offset=[64, 736],
-            p_flags=[4, 4],
-            p_vaddr=[64, 736],
-            p_paddr=[64, 736],
-            p_filesz=[672, 28],
-            p_memsz=[672, 28],
-            p_align=[8, 1]
-        )
+        ephdr = ELFProgramHeader.objects.get(sample=self.sample)
         ephdr.delete()
 
         try:
@@ -84,26 +60,27 @@ class ELFProgramHeaderTestCase(TestCase):
         except ObjectDoesNotExist:
             pass
 
-    def test_duplicate_elfprogramheader(self):
+    def test_elfprogramheader_onetoone_sample_cannot_delete(self):
+        """
+        This test checks if the SampleMetadata object referenced by the ELFProgramHeader
+        object can be deleted. It should not be, since there is a OneToOne constraint
+        with on_delete=models.PROTECT.
+        """
+        sample = SampleMetadata.objects.get(sha256=self.sha256)
+
+        try:
+            sample.delete()
+            self.fail('SampleMetadata object deleted in database')
+        except IntegrityError:
+            pass
+
+    def test_elfprogramheader_duplicate(self):
         """
         If a sample is analyzed twice, their ELFProgramHeader entries should still be
         the same, i.e., if two ELFProgramHeader objects are created for the same sample
         object, it should result in django.db.utils.IntegrityError exception. This
         is because ELFProgramHeader.sample is a OneToOneField.
         """
-
-        ELFProgramHeader.objects.create(
-            sample=self.sample,
-            p_type=["PT_PHDR", "PT_INTERP"],
-            p_offset=[64, 736],
-            p_flags=[4, 4],
-            p_vaddr=[64, 736],
-            p_paddr=[64, 736],
-            p_filesz=[672, 28],
-            p_memsz=[672, 28],
-            p_align=[8, 1]
-        )
-
         try:
             ELFProgramHeader.objects.create(
                 sample=self.sample,

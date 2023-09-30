@@ -16,7 +16,7 @@ class SampleMetadataTestCase(TestCase):
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
         # The below serves as a "create entry" test case
-        cls.sample = SampleMetadata.objects.create(
+        SampleMetadata.objects.create(
             md5=cls.md5,
             sha1=cls.sha1,
             sha256=cls.sha256,
@@ -43,7 +43,7 @@ class SampleMetadataTestCase(TestCase):
         sha256 = hashlib.sha256(test_string).hexdigest()
 
         try:
-            self.sample = SampleMetadata.objects.create(
+            SampleMetadata.objects.create(
                 md5=md5,
                 sha1=sha1,
                 sha256=sha256,

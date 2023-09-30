@@ -21,13 +21,9 @@ class ELFHeaderTestCase(TestCase):
             sha1=cls.sha1,
             sha256=cls.sha256,
         )
-
-    def test_elfheader_create(self):
-        """
-        This test creates an entry in the ELFHeader table.
-        """
+        # Below serves as object creation test case
         ELFHeader.objects.create(
-            sample=self.sample,
+            sample=cls.sample,
             e_ident_magic=b".ELF",
             e_ident_ei_class="ELFCLASS64",
             e_ident_ei_data="ELFDATA2LSB",
@@ -55,30 +51,7 @@ class ELFHeaderTestCase(TestCase):
         """
         This test updates an entry in the ELFHeader table.
         """
-        eh = ELFHeader.objects.create(
-            sample=self.sample,
-            e_ident_magic=b".ELF",
-            e_ident_ei_class="ELFCLASS32",
-            e_ident_ei_data="ELFDATA2MSB",
-            e_ident_ei_version="EV_CURRENT",
-            e_ident_ei_osabi="ELFOSABI_NONE",
-            e_ident_ei_abiversion=1,
-            e_ident_ei_pad=b"\x00\x00\x00",
-            e_ident_ei_nident=16,
-            e_type="ET_EXEC",
-            e_machine="EM_X86_64",
-            e_version="EV_CURRENT",
-            e_entry=0x6043,
-            e_phoff=0x32,
-            e_shoff=0x5623,
-            e_flags=0,
-            e_ehsize=52,
-            e_phentsize=52,
-            e_phnum=4,
-            e_shentsize=52,
-            e_shnum=29,
-            e_shstrndx=28,
-        )
+        eh = ELFHeader.objects.get(sample=self.sample)
 
         updated_shnum = 30
         eh.e_shnum = updated_shnum
@@ -91,30 +64,7 @@ class ELFHeaderTestCase(TestCase):
         """
         This test deletes an entry in the ELFHeader table.
         """
-        eh = ELFHeader.objects.create(
-            sample=self.sample,
-            e_ident_magic=b".ELF",
-            e_ident_ei_class="ELFCLASS64",
-            e_ident_ei_data="ELFDATA2LSB",
-            e_ident_ei_version="EV_CURRENT",
-            e_ident_ei_osabi="ELFOSABI_STANDALONE",
-            e_ident_ei_abiversion=1,
-            e_ident_ei_pad=b"\x00\x00",
-            e_ident_ei_nident=16,
-            e_type="ET_DYN",
-            e_machine="EM_X86_64",
-            e_version="EV_CURRENT",
-            e_entry=0x6043,
-            e_phoff=0x32,
-            e_shoff=0x5623,
-            e_flags=0,
-            e_ehsize=52,
-            e_phentsize=52,
-            e_phnum=4,
-            e_shentsize=52,
-            e_shnum=29,
-            e_shstrndx=28,
-        )
+        eh = ELFHeader.objects.get(sample=self.sample)
         eh.delete()
 
         try:
@@ -123,39 +73,27 @@ class ELFHeaderTestCase(TestCase):
         except ObjectDoesNotExist:
             pass
 
-    def test_duplicate_elfheader(self):
+    def test_elfheader_onetoone_sample_cannot_delete(self):
+        """
+        This test checks if the SampleMetadata object referenced by the ELFHeader
+        object can be deleted. It should not be, since there is a OneToOne constraint
+        with on_delete=models.PROTECT.
+        """
+        sample = SampleMetadata.objects.get(sha256=self.sha256)
+
+        try:
+            sample.delete()
+            self.fail('SampleMetadata object deleted in database')
+        except IntegrityError:
+            pass
+
+    def test_elfheader_duplicate(self):
         """
         If a sample is analyzed twice, their ELFHeader entries should still be
         the same, i.e., if two ELFHeader objects are created for the same sample
         object, it should result in django.db.utils.IntegrityError exception. This
         is because ELFHeader.sample is a OneToOneField.
         """
-
-        ELFHeader.objects.create(
-            sample=self.sample,
-            e_ident_magic=b".ELF",
-            e_ident_ei_class="ELFCLASS64",
-            e_ident_ei_data="ELFDATA2LSB",
-            e_ident_ei_version="EV_CURRENT",
-            e_ident_ei_osabi="ELFOSABI_STANDALONE",
-            e_ident_ei_abiversion=1,
-            e_ident_ei_pad=b"\x00\x00",
-            e_ident_ei_nident=16,
-            e_type="ET_DYN",
-            e_machine="EM_X86_64",
-            e_version="EV_CURRENT",
-            e_entry=0x6043,
-            e_phoff=0x32,
-            e_shoff=0x5623,
-            e_flags=0,
-            e_ehsize=52,
-            e_phentsize=52,
-            e_phnum=4,
-            e_shentsize=52,
-            e_shnum=29,
-            e_shstrndx=28,
-        )
-
         try:
             ELFHeader.objects.create(
                 sample=self.sample,
