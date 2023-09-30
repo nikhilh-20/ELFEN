@@ -27,7 +27,7 @@ class TaskMetadataTestCase(TestCase):
             sha256=cls.sha256,
             username="test_user"
         )
-        cls.task = TaskMetadata.objects.create(
+        TaskMetadata.objects.create(
             uuid=cls.uuid1,
             sha256=cls.sample,
             userland_tracing=True,

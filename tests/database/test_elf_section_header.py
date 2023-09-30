@@ -21,7 +21,7 @@ class ELFSectionHeaderTestCase(TestCase):
             sha1=cls.sha1,
             sha256=cls.sha256,
         )
-        cls.shdr = ELFSectionHeader.objects.create(
+        ELFSectionHeader.objects.create(
             sample=cls.sample,
             sh_name=[0, 27],
             sh_name_str=[b'', b'.interp'],

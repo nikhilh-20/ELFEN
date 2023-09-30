@@ -22,7 +22,7 @@ class ELFHeaderTestCase(TestCase):
             sha256=cls.sha256,
         )
         # Below serves as object creation test case
-        cls.eh = ELFHeader.objects.create(
+        ELFHeader.objects.create(
             sample=cls.sample,
             e_ident_magic=b".ELF",
             e_ident_ei_class="ELFCLASS64",

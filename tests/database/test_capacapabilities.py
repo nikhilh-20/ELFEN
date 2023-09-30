@@ -23,7 +23,7 @@ class CapaCapabilitiesTestCase(TestCase):
             sha256=cls.sha256,
             username="test_user"
         )
-        cls.capa = CapaCapabilities.objects.create(
+        CapaCapabilities.objects.create(
             sample=cls.sample,
             base_address=0x401000
         )

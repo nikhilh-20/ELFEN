@@ -22,7 +22,7 @@ class ELFProgramHeaderTestCase(TestCase):
             sha256=cls.sha256,
         )
         # Below serves as object creation test case
-        cls.ephdr = ELFProgramHeader.objects.create(
+        ELFProgramHeader.objects.create(
             sample=cls.sample,
             p_type=["PT_PHDR", "PT_INTERP"],
             p_offset=[64, 736],
