@@ -40,7 +40,8 @@ class SubmitElfTestCase(TestCase):
     def test_submit_elf_no_userland(self):
         """
         Check if ELF binary submission is successful through the submission
-        portal form. No userland tracing.
+        portal form. No userland tracing. This test case does not monitor
+        the outcome of the analysis.
         """
         test_user = User.objects.create_user(username=self.username,
                                              password=self.pwd)
@@ -70,7 +71,8 @@ class SubmitElfTestCase(TestCase):
     def test_submit_elf_with_userland(self):
         """
         Check if ELF binary submission is successful through the submission
-        portal form. Includes userland tracing.
+        portal form. Includes userland tracing. This test case does not monitor
+        the outcome of the analysis.
         """
         test_user = User.objects.create_user(username=self.username,
                                              password=self.pwd)
