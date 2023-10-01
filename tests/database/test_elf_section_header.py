@@ -12,7 +12,7 @@ class ELFSectionHeaderTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        test_string = b'This is a test'
+        test_string = b"This is a test"
         cls.md5 = hashlib.md5(test_string).hexdigest()
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
@@ -24,7 +24,7 @@ class ELFSectionHeaderTestCase(TestCase):
         ELFSectionHeader.objects.create(
             sample=cls.sample,
             sh_name=[0, 27],
-            sh_name_str=[b'', b'.interp'],
+            sh_name_str=[b"", b".interp"],
             sh_type=["SHT_NULL", "SHT_PROGBITS"],
             sh_flags=[0, 2],
             sh_addr=[0, 736],
@@ -58,7 +58,7 @@ class ELFSectionHeaderTestCase(TestCase):
 
         try:
             ELFSectionHeader.objects.get(sample=self.sample)
-            self.fail('ELFHeader object not deleted in database')
+            self.fail("ELFHeader object not deleted in database")
         except ObjectDoesNotExist:
             pass
 
@@ -72,7 +72,7 @@ class ELFSectionHeaderTestCase(TestCase):
 
         try:
             sample.delete()
-            self.fail('SampleMetadata object deleted in database')
+            self.fail("SampleMetadata object deleted in database")
         except IntegrityError:
             pass
 
@@ -87,7 +87,7 @@ class ELFSectionHeaderTestCase(TestCase):
             ELFSectionHeader.objects.create(
                 sample=self.sample,
                 sh_name=[0, 27],
-                sh_name_str=[b'', b'.interp'],
+                sh_name_str=[b"", b".interp"],
                 sh_type=["SHT_NULL", "SHT_PROGBITS"],
                 sh_flags=[0, 2],
                 sh_addr=[0, 736],
@@ -98,6 +98,6 @@ class ELFSectionHeaderTestCase(TestCase):
                 sh_addralign=[0, 0],
                 sh_entsize=[0, 1]
             )
-            self.fail('Duplicate ELFSectionHeader entry should not have been created in DB')
+            self.fail("Duplicate ELFSectionHeader entry should not have been created in DB")
         except IntegrityError:
             pass

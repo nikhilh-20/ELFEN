@@ -13,7 +13,7 @@ class PrintableStringsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        test_string = b'This is a test'
+        test_string = b"This is a test"
         cls.md5 = hashlib.md5(test_string).hexdigest()
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
@@ -46,6 +46,7 @@ class PrintableStringsTestCase(TestCase):
         printable_strings.strs = new_strs
         printable_strings.save()
 
+        printable_strings = PrintableStrings.objects.get(sample=self.sample)
         self.assertEqual(printable_strings.strs, new_strs)
 
     def test_printablestrings_delete(self):
@@ -59,7 +60,7 @@ class PrintableStringsTestCase(TestCase):
 
         try:
             PrintableStrings.objects.get(sample=self.sample)
-            self.fail('PrintableStrings object not deleted in database')
+            self.fail("PrintableStrings object not deleted in database")
         except ObjectDoesNotExist:
             pass
 
@@ -72,6 +73,6 @@ class PrintableStringsTestCase(TestCase):
         sample = SampleMetadata.objects.get(sha256=self.sha256)
         try:
             sample.delete()
-            self.fail('SampleMetadata object deleted in database')
+            self.fail("SampleMetadata object deleted in database")
         except IntegrityError:
             pass

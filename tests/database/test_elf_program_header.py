@@ -12,7 +12,7 @@ class ELFProgramHeaderTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        test_string = b'This is a test'
+        test_string = b"This is a test"
         cls.md5 = hashlib.md5(test_string).hexdigest()
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
@@ -38,25 +38,25 @@ class ELFProgramHeaderTestCase(TestCase):
         """
         This test updates an entry in the ELFProgramHeader table.
         """
-        ephdr = ELFProgramHeader.objects.get(sample=self.sample)
+        phdr = ELFProgramHeader.objects.get(sample=self.sample)
 
         updated_p_type = ["PT_PHDR", "PT_DYNAMIC"]
-        ephdr.p_type = updated_p_type
-        ephdr.save()
+        phdr.p_type = updated_p_type
+        phdr.save()
 
-        ephdr = ELFProgramHeader.objects.get(sample=self.sample)
-        self.assertEqual(ephdr.p_type, updated_p_type)
+        phdr = ELFProgramHeader.objects.get(sample=self.sample)
+        self.assertEqual(phdr.p_type, updated_p_type)
 
     def test_elfprogramheader_delete(self):
         """
         This test deletes an entry in the ELFProgramHeader table.
         """
-        ephdr = ELFProgramHeader.objects.get(sample=self.sample)
-        ephdr.delete()
+        phdr = ELFProgramHeader.objects.get(sample=self.sample)
+        phdr.delete()
 
         try:
             ELFProgramHeader.objects.get(sample=self.sample)
-            self.fail('ELFHeader object not deleted in database')
+            self.fail("ELFHeader object not deleted in database")
         except ObjectDoesNotExist:
             pass
 
@@ -70,7 +70,7 @@ class ELFProgramHeaderTestCase(TestCase):
 
         try:
             sample.delete()
-            self.fail('SampleMetadata object deleted in database')
+            self.fail("SampleMetadata object deleted in database")
         except IntegrityError:
             pass
 
@@ -93,6 +93,6 @@ class ELFProgramHeaderTestCase(TestCase):
                 p_memsz=[672, 28],
                 p_align=[8, 1]
             )
-            self.fail('Duplicate ELFProgramHeader entry should not have been created in DB')
+            self.fail("Duplicate ELFProgramHeader entry should not have been created in DB")
         except IntegrityError:
             pass
