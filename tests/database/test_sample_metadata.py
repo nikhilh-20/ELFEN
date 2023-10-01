@@ -11,7 +11,7 @@ class SampleMetadataTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        test_string = b'This is a test'
+        test_string = b"This is a test"
         cls.md5 = hashlib.md5(test_string).hexdigest()
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
@@ -37,7 +37,7 @@ class SampleMetadataTestCase(TestCase):
         This test checks if an incorrect sample creation is caught. In this
         case, the "bintype" field contains an invalid entry.
         """
-        test_string = b'This is an incorrect test'
+        test_string = b"This is an incorrect test"
         md5 = hashlib.md5(test_string).hexdigest()
         sha1 = hashlib.sha1(test_string).hexdigest()
         sha256 = hashlib.sha256(test_string).hexdigest()
@@ -49,7 +49,7 @@ class SampleMetadataTestCase(TestCase):
                 sha256=sha256,
                 bintype="et_fail"
             )
-            self.fail('SampleMetadata model failed to validate the "bintype" field')
+            self.fail("SampleMetadata model failed to validate the 'bintype' field")
         except IntegrityError:
             pass
 
@@ -59,7 +59,7 @@ class SampleMetadataTestCase(TestCase):
         make sense because the SHA256 should also change when the MD5 is changed,
         but it's sufficient to check if the update action works.
         """
-        new_md5 = hashlib.md5(b'This is an update test').hexdigest()
+        new_md5 = hashlib.md5(b"This is an update test").hexdigest()
         sample = SampleMetadata.objects.get(sha256=self.sha256)
         sample.md5 = new_md5
         sample.save()
@@ -77,6 +77,6 @@ class SampleMetadataTestCase(TestCase):
 
         try:
             SampleMetadata.objects.get(sha256=self.sha256)
-            self.fail('Sample object not deleted in database')
+            self.fail("Sample object not deleted in database")
         except ObjectDoesNotExist:
             pass

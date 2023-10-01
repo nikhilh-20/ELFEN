@@ -16,7 +16,7 @@ class TaskMetadataTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        test_string = b'This is a test'
+        test_string = b"This is a test"
         cls.md5 = hashlib.md5(test_string).hexdigest()
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
@@ -32,8 +32,8 @@ class TaskMetadataTestCase(TestCase):
             sha256=cls.sample,
             userland_tracing=True,
             status=TaskStatus.IN_PROGRESS,
-            start_time=datetime.datetime.strptime('2022-12-19T17:17:34+00:00',
-                                                  '%Y-%m-%dT%H:%M:%S%z'),
+            start_time=datetime.datetime.strptime("2022-12-19T17:17:34+00:00",
+                                                  "%Y-%m-%dT%H:%M:%S%z"),
         )
 
     def test_get_task_uuid(self):
@@ -54,8 +54,8 @@ class TaskMetadataTestCase(TestCase):
             sha256=self.sample,
             userland_tracing=True,
             status=TaskStatus.IN_PROGRESS,
-            start_time=datetime.datetime.strptime('2022-12-13T17:16:34+00:00',
-                                                  '%Y-%m-%dT%H:%M:%S%z'),
+            start_time=datetime.datetime.strptime("2022-12-13T17:16:34+00:00",
+                                                  "%Y-%m-%dT%H:%M:%S%z"),
             end_time=None,
         )
 
@@ -85,8 +85,8 @@ class TaskMetadataTestCase(TestCase):
         This test updates an in-progress task. It marks it complete and sets
         the end time.
         """
-        end_time = datetime.datetime.strptime('2022-12-13T17:16:38+00:00',
-                                              '%Y-%m-%dT%H:%M:%S%z')
+        end_time = datetime.datetime.strptime("2022-12-13T17:16:38+00:00",
+                                              "%Y-%m-%dT%H:%M:%S%z")
         task = TaskMetadata.objects.get(uuid=self.uuid1)
         self.assertEqual(task.status, TaskStatus.IN_PROGRESS)
 
@@ -109,7 +109,7 @@ class TaskMetadataTestCase(TestCase):
 
         try:
             TaskMetadata.objects.get(uuid=self.uuid1)
-            self.fail('Task object not deleted in database')
+            self.fail("Task object not deleted in database")
         except ObjectDoesNotExist:
             pass
 
@@ -122,7 +122,7 @@ class TaskMetadataTestCase(TestCase):
         sample = SampleMetadata.objects.get(sha256=self.sha256)
         try:
             sample.delete()
-            self.fail('SampleMetadata object deleted in database')
+            self.fail("SampleMetadata object deleted in database")
         except IntegrityError:
             pass
 
@@ -139,6 +139,6 @@ class TaskMetadataTestCase(TestCase):
 
         try:
             detection.delete()
-            self.fail('Detection object deleted in database')
+            self.fail("Detection object deleted in database")
         except IntegrityError:
             pass

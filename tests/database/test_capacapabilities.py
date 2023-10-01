@@ -13,7 +13,7 @@ class CapaCapabilitiesTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        test_string = b'This is a test'
+        test_string = b"This is a test"
         cls.md5 = hashlib.md5(test_string).hexdigest()
         cls.sha1 = hashlib.sha1(test_string).hexdigest()
         cls.sha256 = hashlib.sha256(test_string).hexdigest()
@@ -46,6 +46,7 @@ class CapaCapabilitiesTestCase(TestCase):
         capa.base_address = new_base_address
         capa.save()
 
+        capa = CapaCapabilities.objects.get(sample=self.sample)
         self.assertEqual(capa.base_address, new_base_address)
 
     def test_capacapabilities_delete(self):
