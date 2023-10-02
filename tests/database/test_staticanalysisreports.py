@@ -119,4 +119,3 @@ class StaticAnalysisReportsTestCase(TestCase):
             printable_strings.delete()
         except IntegrityError:
             self.fail("PrintableStrings object not deleted in database")
-
