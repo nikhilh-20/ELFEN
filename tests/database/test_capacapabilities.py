@@ -41,8 +41,8 @@ class CapaCapabilitiesTestCase(TestCase):
         This test updates CapaCapabilities object's base_address property.
         """
         capa = CapaCapabilities.objects.get(sample=self.sample)
-        new_base_address = 0x501000
 
+        new_base_address = 0x501000
         capa.base_address = new_base_address
         capa.save()
 
