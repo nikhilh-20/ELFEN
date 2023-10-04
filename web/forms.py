@@ -48,17 +48,35 @@ class RegistrationForm(UserCreationForm):
         }
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput(
+            attrs={"class": "form-control"}
+        ))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
 class FileSubmissionForm(forms.Form):
     """
     This form is the template for user's file submission page
     """
     file = forms.FileField(help_text="The main ELF binary to analyze",
                            widget=forms.FileInput(attrs={"class": "form-control"}))
-    additional_files = forms.FileField(help_text="Dependencies will be placed in the same"
-                                                 " directory as the main sample",
-                                       required=False,
-                                       widget=forms.ClearableFileInput(attrs={"class": "form-control",
-                                                                              "multiple": True}))
+    additional_files = MultipleFileField(help_text="Dependencies will be placed in the same"
+                                                   " directory as the main sample",
+                                         required=False)
     execution_time = forms.ChoiceField(choices=EXECUTION_TIME,
                                        label="Dynamic Execution Time",
                                        help_text="Number of seconds for which to perform"
