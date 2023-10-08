@@ -100,39 +100,39 @@ def start_hardcore_analysis(sample, context):
     # If any corruption/anti-analysis techniques in the sample are found,
     # then fixed_sample_path will not be equal to sample_path. Otherwise,
     # they are equal.
-    basic_info, sample_path_, _ = parse_elf.get_basic_info(sample_path)
-    if sample_path_.endswith("_fixed"):
-        # Sample was fixed
-        context["fixed_sample_path"] = sample_path_
+    basic_info, sample_path_, msg = parse_elf.get_basic_info(sample_path)
 
     if basic_info is None:
-        LOG.error("Could not parse ELF binary")
-        task.error_msg = "Could not parse ELF binary"
+        error_msg = "\n".join(msg.values())
+        LOG.error(error_msg)
+        task.error_msg = f"Analysis aborted: {error_msg}"
         task.errors = True
         task.status = TaskStatus.ERROR
         task.end_time = datetime.datetime.now()
         task.save(update_fields=["error_msg", "errors", "status", "end_time"])
-        return
+    else:
+        if sample_path_.endswith("_fixed"):
+            # Sample was fixed
+            context["fixed_sample_path"] = sample_path_
 
-    if basic_info.err_msg:
-        LOG.error(f"Error while parsing ELF binary: {basic_info.err_msg}")
-        task.error_msg = basic_info.err_msg
-        task.errors = True
-        task.save(update_fields=["error_msg", "errors"])
+        if basic_info.err_msg:
+            LOG.error(f"Error while parsing ELF binary: {basic_info.err_msg}")
+            task.error_msg = basic_info.err_msg
+            task.errors = True
+            task.save(update_fields=["error_msg", "errors"])
 
-    # Have to align certain fields as required by SampleMetadata model.
-    basic_info = _align_as_per_model(basic_info)
-    sample.bintype = basic_info.e_type
-    sample.save(update_fields=["bintype"])
+        # Have to align certain fields as required by SampleMetadata model.
+        basic_info = _align_as_per_model(basic_info)
+        sample.bintype = basic_info.e_type
+        sample.save(update_fields=["bintype"])
 
-    # Run configured analysis modules asynchronously
-    analysis_modules = config.get("analysis", [])
-    taskreports.status = TaskStatus.IN_PROGRESS
-    taskreports.save(update_fields=["status"])
-    for module in analysis_modules:
-        LOG.debug(f"Starting analysis module: {module}")
-        mod = importlib.import_module(f"analysis.analysis.{module}")
-        mod.start_analysis.delay(context)
+        # Run configured analysis modules asynchronously
+        analysis_modules = config.get("analysis", [])
+        taskreports.status = TaskStatus.IN_PROGRESS
+        taskreports.save(update_fields=["status"])
+        for module in analysis_modules:
+            LOG.debug(f"Starting analysis module: {module}")
+            mod = importlib.import_module(f"analysis.analysis.{module}")
+            mod.start_analysis.delay(context)
 
-    # TODO: Detection subsystem
-    check_detection.delay(context)
+        check_detection.delay(context)
