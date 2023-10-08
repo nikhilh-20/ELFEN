@@ -1,0 +1,3 @@
+374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2: ELF64, Hello World program
+44a19f785c695a90f7ace5d17feb25a7c7e95f9ce609117138c739276fc145ff: ELF64, Hello World program, stripped
+a7df93896cced4e217d696b6b0bbfb259ded4e80d05652c31646e7b4b86827ab: ELF64, Severely truncated Hello World program, does not execute
