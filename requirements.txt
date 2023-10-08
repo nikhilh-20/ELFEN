@@ -38,7 +38,7 @@ django-simple-captcha==0.5.17
 dncil==1.0.2
 dnfile==0.13.0
 docutils==0.19
-elflepton==2.0.2
+elflepton==2.0.4
 enum-compat==0.0.3
 exceptiongroup==1.1.0
 executing==1.2.0

@@ -338,6 +338,10 @@ def get_basic_info(sample_path):
     # the fixed sample, and not the submitted sample.
     sample_path, msg = static_anti_analysis.check_elf_header_corruption(sample_path)
 
+    if sample_path is None:
+        LOG.error(f"ELF binary not in a state to be parsed.")
+        return None, sample_path, msg
+
     try:
         LOG.debug(f"Trying to parse {sample_path} with PyelftoolsParser")
         sample_obj = PyelftoolsParser(sample_path)

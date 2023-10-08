@@ -45,8 +45,12 @@ def fix_headers(sample_path):
 
     new_data = elf_file.reconstruct_file()
 
-    with open(new_sample_path, "wb") as f:
-        f.write(new_data)
+    if new_data:
+        with open(new_sample_path, "wb") as f:
+            f.write(new_data)
+    else:
+        LOG.error(f"Failed to fix headers for {sample_path}")
+        return None
 
     return new_sample_path
 
@@ -131,6 +135,9 @@ def check_elf_header_corruption(sample_path):
             new_sample_path = sample_path
         else:
             new_sample_path = fix_headers(sample_path)
+            if new_sample_path is None:
+                msg["lepton"] = "lepton: Failed to reconstruct ELF file. "\
+                                "Binary might have been severely truncated."
     else:
         LOG.debug(f"No anti-analysis techniques found in {sample_path}")
         new_sample_path = sample_path

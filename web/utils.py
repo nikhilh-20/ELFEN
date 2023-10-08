@@ -134,8 +134,16 @@ def write_submission_to_disk(main_file, dirpath, additional_files=()):
     # Set sample to non-executable
     os.chmod(fpath, 0o444)
 
-    file_magic = magic.from_file(fpath)
-    if not file_magic.startswith("ELF") or "core file" in file_magic:
+    try:
+        file_magic = magic.from_file(fpath)
+    except magic.MagicException:
+        # Haven't looked into this too much. This exception is thrown when the
+        # input is a severely truncated ELF binary. Weirdly, magic.from_file()
+        # works fine in IPython
+        with open(fpath, "rb") as f:
+            file_magic = magic.from_buffer(f.read(4))
+
+    if file_magic and (not file_magic.startswith("ELF") or "core file" in file_magic):
         LOG.error(f"Unsupported filetype: {file_magic}. Main sample cannot be "
                   f"analyzed by ELFEN. Deleting...")
         os.remove(fpath)

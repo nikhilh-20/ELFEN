@@ -96,6 +96,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="card-header text-center" style="font-size: 20px;"><b>Architecture</b></div>
                     {% if sample_metadata.arch %}
                         <div class="card-body text-center">{{ sample_metadata.arch }}</div>
+                    {% elif "arch" not in sample_metadata %}
+                        <div class="card-body text-center"></div>
                     {% else %}
                         <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
@@ -109,6 +111,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="card-header text-center" style="font-size: 20px;"><b>Endian</b></div>
                     {% if sample_metadata.endian %}
                         <div class="card-body text-center">{{ sample_metadata.endian }}</div>
+                    {% elif "endian" not in sample_metadata %}
+                        <div class="card-body text-center"></div>
                     {% else %}
                         <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
@@ -122,6 +126,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="card-header text-center" style="font-size: 20px;"><b>Bitness</b></div>
                     {% if sample_metadata.bitness %}
                         <div class="card-body text-center">{{ sample_metadata.bitness }}</div>
+                    {% elif "bitness" not in sample_metadata %}
+                        <div class="card-body text-center"></div>
                     {% else %}
                         <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
@@ -139,13 +145,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
             <div class="col">
                 <div class="card text-white bg-dark border-0">
                     <div class="card-header text-center" style="font-size: 20px;"><b>Score</b></div>
-                    {% if task_score < 30 %}
+                    {% if task_score is None and task_status == "Error" %}
+                        <div class="card-body text-center fw-bold text-warning"></div>
+                    {% elif task_score < 30 %}
                         <div class="card-body text-info fw-bold text-center">{{ task_score }}: Benign</div>
                     {% elif task_score >= 30 and task_score < 70 %}
                         <div class="card-body text-center fw-bold text-warning">{{ task_score }}: Suspicious </div>
                     {% elif task_score >= 70 %}
                         <div class="card-body text-center fw-bold text-danger">{{ task_score }}: Malicious </div>
-                    {% else %}
+                    {% elif task_score is None %}
                         <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                  style="width: 100%;"></div>

@@ -400,7 +400,8 @@ def get_all_reports(submission_uuid, web=False):
         reports = get_dynamic_reports(dynamic_analysis_reports, reports,
                                       submission_uuid, web)
 
-    # Populate detection reports info
-    reports = get_detection_reports(detection, reports, submission_uuid)
+    if detection:
+        # Populate detection reports info
+        reports = get_detection_reports(detection, reports, submission_uuid)
 
     return reports
