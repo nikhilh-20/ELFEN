@@ -181,7 +181,7 @@ class ELFSectionHeader(models.Model):
     # setting to 2048
     sh_name_str = fields.ArrayField(models.BinaryField(max_length=2048), null=True,
                                     verbose_name="sh_name (string)")
-    sh_type = fields.ArrayField(models.CharField(max_length=14), null=True,
+    sh_type = fields.ArrayField(models.CharField(max_length=15), null=True,
                                 verbose_name="sh_type")
     sh_flags = fields.ArrayField(models.PositiveBigIntegerField(), null=True,
                                  verbose_name="sh_flags")
