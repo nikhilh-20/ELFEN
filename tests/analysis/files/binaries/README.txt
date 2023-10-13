@@ -1,3 +1,6 @@
 374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2: ELF64, Hello World program
 44a19f785c695a90f7ace5d17feb25a7c7e95f9ce609117138c739276fc145ff: ELF64, Hello World program, stripped
 a7df93896cced4e217d696b6b0bbfb259ded4e80d05652c31646e7b4b86827ab: ELF64, Severely truncated Hello World program, does not execute
+1a0de3871be4932abd0ace0dd12cd90a7c1cd27747612174d03c9dfe287ad0da: ELF64, Concat of 374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2, a7df93896cced4e217d696b6b0bbfb259ded4e80d05652c31646e7b4b86827ab
+94d442a6511f8430e16f3bad31d3e3e81cfed72fe32450a294c8606963fd47d1: ELF64, Compiled RC4 program copied from https://hideandsec.sh/books/red-teaming/page/the-rc4-encryption
+1eac86dd4dde2fdc06cb7b8d9dbe2573eff4cc7bc428f1a1c0aed65a80fad428: ELF64, Same as 374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2 except some sections-related fields in the ELF header were zero'd
