@@ -231,11 +231,10 @@ def detect_anti_analysis_techniques(sample, sample_path):
         aaa.elflepton = True
         aaa.status = TaskStatus.COMPLETE
         aaa.save()
-
-    aa.packers = packer
     for tool_name in msg:
         setattr(aa, tool_name, msg[tool_name])
 
+    aa.packers = packer
     aa.status = TaskStatus.COMPLETE
     aa.save()
     return aa, aaa

@@ -336,7 +336,7 @@ def get_basic_info(sample_path):
     LOG.debug(f"Getting basic info from {sample_path}")
     # If there is any anti-analysis technique used, the sample path is updated to
     # the fixed sample, and not the submitted sample.
-    sample_path, msg = static_anti_analysis.check_elf_header_corruption(sample_path)
+    sample_path, msg = static_anti_analysis.check_elf_header_anomalies(sample_path)
 
     if sample_path is None:
         LOG.error(f"ELF binary not in a state to be parsed.")
