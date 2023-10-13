@@ -108,9 +108,12 @@ def check_tool_warnings(sample_path):
     # Section headers provide a good indication of anomalies
     out = subprocess.run(["readelf", "-S", sample_path], stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    if out.stderr or out.returncode != 0:
+    if out.stderr or b"no sections" in out.stdout or out.returncode != 0:
         LOG.debug("Found anomalies while performing 'readelf -S'")
-        msg["readelf"].append(out.stderr.decode("utf-8")[:max_len])
+        if out.stderr:
+            msg["readelf"].append(out.stderr.decode("utf-8")[:max_len])
+        elif b"no sections in this file" in out.stdout:
+            msg["readelf"].append(out.stdout.decode("utf-8")[:max_len])
         anti_analysis = True
 
     msg["readelf"] = " | ".join(msg["readelf"])[:max_len]

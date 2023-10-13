@@ -8,6 +8,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
       - name: Get current user UID and GID
         run: id -u && id -g
       - name: Get Current Directory Listing

@@ -1,6 +1,3 @@
-import uuid
-import datetime
-
 from django.conf import settings
 from django.test import TestCase
 
@@ -12,9 +9,59 @@ class StaticAnalysisTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.tests_dir = os.path.join(settings.BASE_DIR, "tests", "analysis",
-                                     "files")
+        cls.tests_dir = os.path.join(settings.BASE_DIR, "tests", "analysis", "files")
         cls.bin_dir = os.path.join(cls.tests_dir, "binaries")
+
+    def test_anti_analysis_check(self):
+        """
+        Check if the anomalies and anomalies-correcting backends are working as
+        expected.
+        """
+        sha256 = "1eac86dd4dde2fdc06cb7b8d9dbe2573eff4cc7bc428f1a1c0aed65a80fad428"
+        sample = SampleMetadata.objects.create(
+            md5="7ded82f7147c1251ab55a70a1a3fd829",
+            sha1="d40b901a2d3ea6c8cd033f4432878dca051685a2",
+            sha256=sha256,
+            username="test"
+        )
+
+        aa, aaa = detect_anti_analysis_techniques(sample, os.path.join(self.bin_dir, sha256))
+        self.assertIsNotNone(aa.readelf, "Error - readelf didn't throw warnings")
+        self.assertIsNotNone(aa.pyelftools, "Error - pyelftools didn't throw warnings")
+        self.assertTrue(aaa.elflepton, "Error - elflepton flag wasn't set")
+
+    def test_embedded_elf(self):
+        """
+        Check if the embedded elf finding backend is working as expected.
+        """
+        sha256 = "1a0de3871be4932abd0ace0dd12cd90a7c1cd27747612174d03c9dfe287ad0da"
+        embedded_elf = parse_elf.get_embedded_elf(os.path.join(self.bin_dir, sha256))
+        self.assertIsNotNone(embedded_elf, "Error - No embedded ELF was found.")
+        self.assertEqual(len(embedded_elf), 1)
+        self.assertEqual(embedded_elf[0][1], 15960)
+
+    def test_apply_capa(self):
+        """
+        Check if the CAPA backend is working as expected.
+        """
+        # RC4 program copied from https://hideandsec.sh/books/red-teaming/page/the-rc4-encryption
+        sha256 = "94d442a6511f8430e16f3bad31d3e3e81cfed72fe32450a294c8606963fd47d1"
+        sample = SampleMetadata.objects.create(
+            md5="6cd279f9f3a229e6f32c7aaf9c95e979",
+            sha1="ef3a2ff38bfa249b219b19ee54b8370a8bfb9822",
+            sha256=sha256,
+            username="test"
+        )
+        expected_capa = {
+            "base_address": 33554432,
+            "rules": ["encrypt data using RC4 PRGA"],
+            "namespaces": ["data-manipulation/encryption/rc4"],
+            "addresses": [[33559680]]
+        }
+
+        capa = apply_capa(sample, os.path.join(self.bin_dir, sha256))
+        for prop in expected_capa:
+            self.assertEqual(expected_capa[prop], getattr(capa, prop))
 
     def test_apply_feature_extractor_truncated(self):
         """
