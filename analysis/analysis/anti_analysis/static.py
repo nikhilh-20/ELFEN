@@ -82,39 +82,53 @@ def check_if_packed(sample_path):
 def check_tool_warnings(sample_path):
     """
     This function leverages readelf/pyelftools to parse the sample and record
-    warnings, if any. These warnings indicate corruption, or atleast anomalies.
+    warnings, if any. These warnings indicate anomalies.
 
     :param sample_path: Full on-disk path to submitted sample
     :type sample_path: str
     :return: Flag to indicate presence of anomalies, Recorded tool warnings
     :rtype: bool, dict
     """
-    msg = {}
-    corruption = False
+    msg = {
+        "readelf": [],
+        "pyelftools": ""
+    }
+    anti_analysis = False
 
     LOG.debug(f"Checking for anomalies in {sample_path} using readelf")
-    # readelf outputs errors messages in presence of corrupted ELF headers
+    # readelf outputs errors messages in presence of anomalous ELF headers
     max_len = AntiStaticAnalysis._meta.get_field("readelf").max_length
     out = subprocess.run(["readelf", "-h", sample_path], stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     if out.stderr or out.returncode != 0:
-        msg["readelf"] = out.stderr.decode("utf-8")[:max_len]
-        corruption = True
+        LOG.debug("Found anomalies while performing 'readelf -h'")
+        msg["readelf"].append(out.stderr.decode("utf-8")[:max_len])
+        anti_analysis = True
+
+    # Section headers provide a good indication of anomalies
+    out = subprocess.run(["readelf", "-S", sample_path], stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    if out.stderr or out.returncode != 0:
+        LOG.debug("Found anomalies while performing 'readelf -S'")
+        msg["readelf"].append(out.stderr.decode("utf-8")[:max_len])
+        anti_analysis = True
+
+    msg["readelf"] = " | ".join(msg["readelf"])[:max_len]
 
     LOG.debug(f"Checking for anomalies in {sample_path} using pyelftools")
-    # Sometimes pyelftools fails in presence of corrupted ELF headers
+    # Sometimes pyelftools fails in presence of anomalous ELF headers
     max_len = AntiStaticAnalysis._meta.get_field("pyelftools").max_length
     with open(sample_path, "rb") as f:
         try:
             ELFFile(f)
         except (OSError, elftools.common.exceptions.ELFError, TypeError) as err:
             msg["pyelftools"] = f"pyelftools: {str(err)}"[:max_len]
-            corruption = True
+            anti_analysis = True
 
-    return corruption, msg
+    return anti_analysis, msg
 
 
-def check_elf_header_corruption(sample_path):
+def check_elf_header_anomalies(sample_path):
     """
     Check if there is any corruption/anti-analysis techniques used in the
     submitted sample. If any, fix it, write updated file to disk and return
@@ -125,7 +139,7 @@ def check_elf_header_corruption(sample_path):
     :return: Fixed sample path and anti-analysis message, if any
     :rtype: str, dict
     """
-    LOG.debug(f"Checking for ELF header corruption in {sample_path}")
+    LOG.debug(f"Checking for ELF header anomalies in {sample_path}")
     anti_analysis, msg = check_tool_warnings(sample_path)
 
     if anti_analysis:
