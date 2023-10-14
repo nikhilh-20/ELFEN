@@ -12,6 +12,99 @@ class StaticAnalysisTestCase(TestCase):
         cls.tests_dir = os.path.join(settings.BASE_DIR, "tests", "analysis", "files")
         cls.bin_dir = os.path.join(cls.tests_dir, "binaries")
 
+    def test_strings_sha256_mapping(self):
+        """
+        Check if printable strings are mapped to relevant SHA256 as expected.
+        """
+        sha1_256 = "374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2"
+        sample1 = SampleMetadata.objects.create(
+            md5="a21ab06cd66dc42965fbe807317d76a8",
+            sha1="4f8a3328d3b2bd38817039cf92379dcb0b34aca7",
+            sha256=sha1_256,
+            username="test"
+        )
+        sha2_256 = "44a19f785c695a90f7ace5d17feb25a7c7e95f9ce609117138c739276fc145ff"
+        sample2 = SampleMetadata.objects.create(
+            md5="973b31f527aee5e562d69b843520b94b",
+            sha1="a9875e0c1066abe11c3e2471103e67ef935ef74a",
+            sha256=sha2_256,
+            username="test"
+        )
+        list1 = [
+            "374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2",
+            "44a19f785c695a90f7ace5d17feb25a7c7e95f9ce609117138c739276fc145ff"
+        ]
+        list2 = [
+            "374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2"
+        ]
+
+        expected_mapping = {
+            "@8\r@": list1, "/lib64/ld-linux-x86-64.so.2": list1,
+            "__cxa_finalize": list1, "__libc_start_main": list1,
+            "puts": list1, "libc.so.6": list1, "GLIBC_2.2.5": list1,
+            "GLIBC_2.34": list1, "_ITM_deregisterTMCloneTable": list1,
+            "__gmon_start__": list1, "_ITM_registerTMCloneTable": list1,
+            "PTE1": list1, "u+UH": list1, "Hello World": list1,
+            ":*3$\"": list1, "GCC: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0": list1,
+            ".shstrtab": list1, ".interp": list1, ".note.gnu.property": list1,
+            ".note.gnu.build-id": list1, ".note.ABI-tag": list1, ".gnu.hash": list1,
+            ".dynsym": list1, ".dynstr": list1, ".gnu.version": list1,
+            ".gnu.version_r": list1, ".rela.dyn": list1, ".rela.plt": list1,
+            ".init": list1, ".plt.got": list1, ".plt.sec": list1, ".text": list1,
+            ".fini": list1, ".rodata": list1, ".eh_frame_hdr": list1,
+            ".eh_frame": list1, ".init_array": list1, ".fini_array": list1,
+            ".dynamic": list1, ".data": list1, ".bss": list1, ".comment": list1,
+            "Scrt1.o": list2, "开慟楢瑟条": list2, "crtstuff.c": list2,
+            "deregister_tm_clones": list2, "__do_global_dtors_aux": list2,
+            "completed.0": list2, "__do_global_dtors_aux_fini_array_entry": list2,
+            "frame_dummy": list2, "__frame_dummy_init_array_entry": list2,
+            "hello.c": list2, "__FRAME_END__": list2, "_DYNAMIC": list2,
+            "__GNU_EH_FRAME_HDR": list2, "_GLOBAL_OFFSET_TABLE_": list2,
+            "__libc_start_main@GLIBC_2.34": list2, "puts@GLIBC_2.2.5": list2,
+            "_edata": list2, "_fini": list2, "__data_start": list2,
+            "__dso_handle": list2, "_IO_stdin_used": list2, "_end": list2,
+            "__bss_start": list2, "main": list2, "__TMC_END__": list2,
+            "__cxa_finalize@GLIBC_2.2.5": list2, "_init": list2, ".symtab": list2,
+            ".strtab": list2
+        }
+        apply_strings(sample1, os.path.join(self.bin_dir, sha1_256))
+        apply_strings(sample2, os.path.join(self.bin_dir, sha2_256))
+
+        for string, expected_sha256s in expected_mapping.items():
+            sha256s = Strings.objects.get(string=string).sha256s
+            self.assertEqual(sha256s, expected_sha256s)
+
+    def test_printable_strings(self):
+        """
+        Check if printable strings are extracted as expected.
+        """
+        sha256 = "374e76244ff579278f294a3b70bed0b27c7d089d101d9eb97af26a04c33a5bd2"
+        sample = SampleMetadata.objects.create(
+            md5="a21ab06cd66dc42965fbe807317d76a8",
+            sha1="4f8a3328d3b2bd38817039cf92379dcb0b34aca7",
+            sha256=sha256,
+            username="test"
+        )
+        expected_strings = [
+            "@8\r@", "/lib64/ld-linux-x86-64.so.2", "__cxa_finalize", "__libc_start_main",
+            "puts", "libc.so.6", "GLIBC_2.2.5", "GLIBC_2.34", "_ITM_deregisterTMCloneTable",
+            "__gmon_start__", "_ITM_registerTMCloneTable", "PTE1", "u+UH", "Hello World",
+            ":*3$\"", "GCC: (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0", "Scrt1.o", "开慟楢瑟条",
+            "crtstuff.c", "deregister_tm_clones", "__do_global_dtors_aux", "completed.0",
+            "__do_global_dtors_aux_fini_array_entry", "frame_dummy", "__frame_dummy_init_array_entry",
+            "hello.c", "__FRAME_END__", "_DYNAMIC", "__GNU_EH_FRAME_HDR", "_GLOBAL_OFFSET_TABLE_",
+            "__libc_start_main@GLIBC_2.34", "puts@GLIBC_2.2.5", "_edata", "_fini", "__data_start",
+            "__dso_handle", "_IO_stdin_used", "_end", "__bss_start", "main", "__TMC_END__",
+            "__cxa_finalize@GLIBC_2.2.5", "_init", ".symtab", ".strtab", ".shstrtab",
+            ".interp", ".note.gnu.property", ".note.gnu.build-id", ".note.ABI-tag", ".gnu.hash",
+            ".dynsym", ".dynstr", ".gnu.version", ".gnu.version_r", ".rela.dyn", ".rela.plt",
+            ".init", ".plt.got", ".plt.sec", ".text", ".fini", ".rodata", ".eh_frame_hdr",
+            ".eh_frame", ".init_array", ".fini_array", ".dynamic", ".data", ".bss", ".comment"
+        ]
+        printable_strings = apply_strings(sample, os.path.join(self.bin_dir, sha256))
+        self.assertEqual(len(printable_strings.strs), len(expected_strings))
+        self.assertEqual(printable_strings.strs, expected_strings)
+
     def test_anti_analysis_check(self):
         """
         Check if the anomalies and anomalies-correcting backends are working as
