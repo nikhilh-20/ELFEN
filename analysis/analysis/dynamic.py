@@ -26,7 +26,7 @@ from random import choice
 from celery import shared_task
 from string import ascii_letters
 
-from analysis.analysis.utils.dynamic.behavior import get_arch_image, deploy_qemu
+from analysis.analysis.utils.dynamic.behavior import get_image_info, deploy_qemu
 from analysis.analysis.utils.dynamic.dynamic import analyze_trace
 from analysis.analysis.utils.dynamic.esxcli_files import create_esxcli_files
 from analysis.analysis_models.utils import TaskStatus
@@ -132,6 +132,79 @@ def apply_droppedfiles(dynamic_analysis_dir, dynamic_analysis_report):
         shutil.rmtree(tmpdir)
 
 
+def setup_sandbox_files(sample_path, additional_files, exec_args, exec_time,
+                        userland_tracing, dirpath, dynamic_analysis_dir,
+                        task_reports, dynamic_analysis_report):
+    """
+    This function sets up files required for dynamic analysis into the dynamic
+    analysis directory on the host, where it'll be later picked up by the sandbox.
+
+    :param sample_path: Path to the main sample
+    :type sample_path: str
+    :param additional_files: List of paths to dependencies of the main sample
+    :type additional_files: list
+    :param exec_args: Cmdline arguments to be passed to the main sample
+    :type exec_args: str
+    :param exec_time: Execution time of the sample
+    :type exec_time: str
+    :param userland_tracing: Whether userland tracing is enabled
+    :type userland_tracing: bool
+    :param dirpath: Host directory in which analysis-related files are stored
+    :type dirpath: str
+    :param dynamic_analysis_dir: Host directory in which dynamic analysis artifacts
+                                 are stored
+    :type dynamic_analysis_dir: str
+    :param task_reports: TaskReports object
+    :type task_reports: analysis.models.TaskReports
+    :param dynamic_analysis_report: DynamicAnalysisReports object
+    :type dynamic_analysis_report: analysis.analysis_models.dynamic_analysis.DynamicAnalysisReports
+    :return: Status of setup
+    :rtype: bool
+    """
+    # Copy sample and additional files into analysis directory.
+    try:
+        LOG.debug(f"Copying sample and additional files to {dynamic_analysis_dir}")
+        shutil.copy(sample_path, os.path.join(dynamic_analysis_dir,
+                                              "main_sample"))
+        for f in additional_files:
+            shutil.copy(os.path.join(dirpath, f), dynamic_analysis_dir)
+    except PermissionError:
+        err_msg = "Hit PermissionError when copying main sample and additional" \
+                  "files into dynamic analysis directory"
+        LOG.error(err_msg)
+        dynamic_analysis_report.status = TaskStatus.ERROR
+        dynamic_analysis_report.errors = True
+        dynamic_analysis_report.error_msg = err_msg
+        dynamic_analysis_report.save(update_fields=["status", "errors", "error_msg"])
+        task_reports.status = TaskStatus.ERROR
+        task_reports.error_msg += f"{err_msg},"
+        task_reports.errors = True
+        task_reports.save(update_fields=["status", "errors", "error_msg"])
+        return False
+
+    # Copy command-line execution arguments into a file. Command expansion will
+    # be used to pass the file content as command-line arguments to the sample.
+    # Something like: ./sample "$(< file.txt)"
+    if exec_args:
+        LOG.debug(f"Creating execution arguments file in {dynamic_analysis_dir}")
+        with open(os.path.join(dynamic_analysis_dir, "exec_args"), "w") as f:
+            f.write(exec_args)
+    # Copy execution time into a file. This will be used to limit the execution
+    # time of the sample.
+    if exec_time:
+        LOG.debug(f"Creating execution time file in {dynamic_analysis_dir}")
+        with open(os.path.join(dynamic_analysis_dir, "timer"), "w") as f:
+            f.write(exec_time)
+    # Create a file whose presence will enable userland tracing of certain libc
+    # functions.
+    if userland_tracing:
+        LOG.debug(f"Creating userland tracing file in {dynamic_analysis_dir}")
+        with open(os.path.join(dynamic_analysis_dir, "prel0ad"), "w"):
+            pass
+
+    return True
+
+
 @shared_task(queue="dynamic_analysis")
 def start_analysis(context):
     """
@@ -174,56 +247,25 @@ def start_analysis(context):
     exec_time = context["execution_time"]
     userland_tracing = context["userland_tracing"]
 
-    # Artifacts of dynamic analysis will be stored here.
-    dynamic_analysis_dir = os.path.join(dirpath, "dynamic_analysis")
     LOG.debug("Dynamic analysis context: "
               f"submission_id: {submission_id}, dirpath: {dirpath}, "
               f"sample_sha256={sample_sha256}, ",
               f"additional_files: {additional_files}, sample_path: {sample_path}, "
               f"exec_args: {exec_args}, exec_time: {exec_time}, "
               f"userland_tracing: {userland_tracing}")
+
+    # Artifacts of dynamic analysis will be stored here.
+    dynamic_analysis_dir = os.path.join(dirpath, "dynamic_analysis")
     os.mkdir(dynamic_analysis_dir)
 
-    # Copy sample and additional files into analysis directory.
-    try:
-        LOG.debug(f"Copying sample and additional files to {dynamic_analysis_dir}")
-        shutil.copy(sample_path, os.path.join(dynamic_analysis_dir,
-                                              "main_sample"))
-        for f in additional_files:
-            shutil.copy(os.path.join(dirpath, f), dynamic_analysis_dir)
-    except PermissionError:
-        err_msg = "Hit PermissionError when copying main sample and additional"\
-                  "files into dynamic analysis directory"
-        LOG.error(err_msg)
-        dynamic_analysis_report.status = TaskStatus.ERROR
-        dynamic_analysis_report.errors = True
-        dynamic_analysis_report.error_msg = err_msg
-        dynamic_analysis_report.save(update_fields=["status", "errors", "error_msg"])
-        task_reports.status = TaskStatus.ERROR
-        task_reports.error_msg += f"{err_msg},"
-        task_reports.errors = True
-        task_reports.save(update_fields=["status", "errors", "error_msg"])
+    # Files required for dynamic analysis are copied into the dynamic analysis
+    # directory on the host.
+    status = setup_sandbox_files(sample_path, additional_files, exec_args,
+                                 exec_time, userland_tracing, dirpath,
+                                 dynamic_analysis_dir, task_reports,
+                                 dynamic_analysis_report)
+    if not status:
         return
-
-    # Copy command-line execution arguments into a file. Command expansion will
-    # be used to pass the file content as command-line arguments to the sample.
-    # Something like: ./sample "$(< file.txt)"
-    if exec_args:
-        LOG.debug(f"Creating execution arguments file in {dynamic_analysis_dir}")
-        with open(os.path.join(dynamic_analysis_dir, "exec_args"), "w") as f:
-            f.write(exec_args)
-    # Copy execution time into a file. This will be used to limit the execution
-    # time of the sample.
-    if exec_time:
-        LOG.debug(f"Creating execution time file in {dynamic_analysis_dir}")
-        with open(os.path.join(dynamic_analysis_dir, "timer"), "w") as f:
-            f.write(exec_time)
-    # Create a file whose presence will enable userland tracing of certain libc
-    # functions.
-    if userland_tracing:
-        LOG.debug(f"Creating userland tracing file in {dynamic_analysis_dir}")
-        with open(os.path.join(dynamic_analysis_dir, "prel0ad"), "w"):
-            pass
 
     # Wait for static analysis to finish extracting sample features. This should
     # be fairly quick. One of these feature is the target architecture. Wait for
@@ -264,7 +306,7 @@ def start_analysis(context):
     # Get arch-specific sandbox image
     arch = samplefeatures.arch
     endian = samplefeatures.endian
-    linux_image_info = get_arch_image(arch, endian.lower())
+    linux_image_info = get_image_info(arch, endian)
     if linux_image_info.get("msg", None):
         err_msg = linux_image_info["msg"]
         LOG.error(err_msg)
@@ -332,7 +374,8 @@ def start_analysis(context):
     dynamic_analysis_report.memstrings = memstrings
     dynamic_analysis_report.save(update_fields=["memstrings"])
 
-    dynamic_analysis_report = analyze_trace(sample, endian, dynamic_analysis_dir, task_reports)
+    dynamic_analysis_report = analyze_trace(sample, endian, dynamic_analysis_dir,
+                                            task_reports)
 
     if dynamic_analysis_report:
         dynamic_analysis_report.status = TaskStatus.COMPLETE
