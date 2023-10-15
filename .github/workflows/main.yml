@@ -21,4 +21,6 @@ jobs:
       - name: Rise ELFEN
         run: docker compose up -d
       - name: Execute Tests
-        run: docker exec elfen-web-1 python manage.py test
+        run: docker exec elfen-web-1 python manage.py test --exclude-tag=slow
+      - name: Execute Slow Tests
+        run: docker exec elfen-web-1 python manage.py test --tag=slow

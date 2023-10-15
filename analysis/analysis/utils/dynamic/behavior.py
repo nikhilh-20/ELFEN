@@ -29,7 +29,49 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
 
 
-def get_arch_image(arch, endian):
+def get_arch_image_zip(arch, endian):
+    """
+    Based on the given arch, this function retrieves a clean Linux sandbox
+    image ZIP.
+
+    :param arch: Architecture of submitted sample.
+    :type arch: str
+    :param endian: Endianness of submitted sample.
+    :type endian: str
+    :return: Path to the sandbox image ZIP, error message if any
+    :rtype: str|None, str
+    """
+    arch = arch.lower()
+    if "amd64" in arch or "i386" in arch:
+        image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                 "x8664", "image.zip")
+    elif arch == "arm":
+        if endian == "le":
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "arm", "image.zip")
+        else:
+            return None, f"Unsupported endianness for dynamic analysis: {endian}"
+    elif arch == "ppc":
+        image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                 "ppc", "image.zip")
+    elif arch == "mips":
+        if endian == "be":
+            # Big endian
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "mips", "image.zip")
+        elif endian == "le":
+            # Little endian
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "mipsel", "image.zip")
+        else:
+            return None, f"Unsupported endianness for dynamic analysis: {endian}"
+    else:
+        return None, f"Unsupported architecture for dynamic analysis: {arch}"
+
+    return image_zip, ""
+
+
+def get_image_info(arch, endian):
     """
     Based on the given arch, this function retrieves a clean Linux sandbox
     image ZIP. It then unzips the kernel and root filesystem image,
@@ -45,35 +87,13 @@ def get_arch_image(arch, endian):
     LOG.debug(f"Getting sandbox image for architecture: {arch}")
     ret = {}
 
+    arch = arch.lower()
+    endian = endian.lower()
+
     if arch:
-        arch = arch.lower()
-        if "amd64" in arch or "i386" in arch:
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "x8664", "image.zip")
-        elif arch == "arm":
-            if endian == "le":
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "arm", "image.zip")
-            else:
-                ret["msg"] = f"Unsupported endianness for dynamic analysis: {endian}"
-                return ret
-        elif arch == "ppc":
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "ppc", "image.zip")
-        elif arch == "mips":
-            if endian == "be":
-                # Big endian
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "mips", "image.zip")
-            elif endian == "le":
-                # Little endian
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "mipsel", "image.zip")
-            else:
-                ret["msg"] = f"Unsupported endianness for dynamic analysis: {endian}"
-                return ret
-        else:
-            ret["msg"] = f"Unsupported architecture for dynamic analysis: {arch}"
+        image_zip, err_msg = get_arch_image_zip(arch, endian)
+        if image_zip is None:
+            ret["msg"] = err_msg
             return ret
     else:
         ret["msg"] = "Unknown architecture for dynamic analysis"
@@ -112,16 +132,10 @@ def get_arch_image(arch, endian):
     return ret
 
 
-def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
-                linux_image_info):
+def get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info):
     """
-    Constructs the qemu command-line string based on the given arguments and
-    starts the OS.
+    Constructs the QEMU command-line string based on the given arguments.
 
-    :param polling_interval: Time to wait before killing QEMU VM
-    :type polling_interval: int
-    :param exec_time: Execution time of the sample
-    :type exec_time: int
     :param arch: Architecture of submitted sample
     :type arch: str
     :param endian: Endianness of submitted sample
@@ -131,22 +145,19 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
     :type dynamic_analysis_dir: str
     :param linux_image_info: Dictionary containing details about sandbox image
     :type linux_image_info: dict
-    :return: Status of QEMU execution
-    :rtype: bool
+    :return: QEMU command-line string
+    :rtype: str|None
     """
-    LOG.debug(f"Deploying QEMU VM for architecture: {arch}")
-    if (linux_image_info.get("kernel") is None or
-            linux_image_info.get("filesystem") is None):
-        return None
-
     arch = arch.lower()
+    endian = endian.lower()
+
     if "amd64" in arch or "i386" in arch:
         kernel = linux_image_info["kernel"]
         root_filesystem = linux_image_info["filesystem"]
-        qemu_cmd = f"qemu-system-x86_64 -M pc -m 512 -kernel {kernel} "\
-                   f"-drive format=raw,if=virtio,file={root_filesystem} "\
-                   '-append "root=/dev/vda console=ttyS0" '\
-                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild "\
+        qemu_cmd = f"qemu-system-x86_64 -M pc -m 512 -kernel {kernel} " \
+                   f"-drive format=raw,if=virtio,file={root_filesystem} " \
+                   '-append "root=/dev/vda console=ttyS0" ' \
+                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild " \
                    "-device virtio-9p-pci,fsdev=guild,mount_tag=guild -nographic"
     elif arch == "arm":
         dtb = linux_image_info.get("dtb")
@@ -154,10 +165,10 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
             return None
         kernel = linux_image_info["kernel"]
         root_filesystem = linux_image_info["filesystem"]
-        qemu_cmd = f"qemu-system-arm -M versatilepb -m 256 -kernel {kernel} -dtb {dtb} "\
-                   f"-drive file={root_filesystem},if=scsi,format=raw "\
-                   '-append "root=/dev/sda console=ttyAMA0,115200" -nographic '\
-                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild "\
+        qemu_cmd = f"qemu-system-arm -M versatilepb -m 256 -kernel {kernel} -dtb {dtb} " \
+                   f"-drive file={root_filesystem},if=scsi,format=raw " \
+                   '-append "root=/dev/sda console=ttyAMA0,115200" -nographic ' \
+                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild " \
                    "-device virtio-9p-pci,fsdev=guild,mount_tag=guild"
     elif arch == "mips":
         endian = endian.lower()
@@ -181,14 +192,45 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
     elif arch == "ppc":
         kernel = linux_image_info["kernel"]
         root_filesystem = linux_image_info["filesystem"]
-        qemu_cmd = f"qemu-system-ppc -M ppce500 -cpu e500mc -m 256 -kernel {kernel} "\
-                   f"-drive if=virtio,format=raw,file={root_filesystem} "\
-                   '-append "root=/dev/vda console=ttyS0"  '\
-                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild "\
+        qemu_cmd = f"qemu-system-ppc -M ppce500 -cpu e500mc -m 256 -kernel {kernel} " \
+                   f"-drive if=virtio,format=raw,file={root_filesystem} " \
+                   '-append "root=/dev/vda console=ttyS0"  ' \
+                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild " \
                    "-device virtio-9p-pci,fsdev=guild,mount_tag=guild -nographic"
     else:
         LOG.error("Unknown architecture. QEMU command not known.")
         return None
+
+    return qemu_cmd
+
+
+def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
+                linux_image_info):
+    """
+    Deploys QEMU-based sandbox for the given sample.
+
+    :param polling_interval: Time to wait before killing QEMU VM
+    :type polling_interval: int
+    :param exec_time: Execution time of the sample
+    :type exec_time: int
+    :param arch: Architecture of submitted sample
+    :type arch: str
+    :param endian: Endianness of submitted sample
+    :type endian: str
+    :param dynamic_analysis_dir: Host path where dynamic analysis artifacts
+                                 will be stored
+    :type dynamic_analysis_dir: str
+    :param linux_image_info: Dictionary containing details about sandbox image
+    :type linux_image_info: dict
+    :return: Status of QEMU execution
+    :rtype: bool
+    """
+    LOG.debug(f"Deploying QEMU VM for architecture: {arch}")
+    if (linux_image_info.get("kernel") is None or
+            linux_image_info.get("filesystem") is None):
+        return None
+
+    qemu_cmd = get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info)
 
     if qemu_cmd:
         try:
