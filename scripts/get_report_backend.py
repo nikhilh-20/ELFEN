@@ -1,3 +1,4 @@
+import os
 import json
 import argparse
 import requests
@@ -22,7 +23,7 @@ def get_report_backend(submission_uuid, backend):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--submission_uuid", "-u", type=str, required=True,
+    parser.add_argument("--uuid", "-u", type=str, required=True,
                         help="Submission UUID of task")
     parser.add_argument("--backend", "-b", type=str, required=True,
                         help="Backend to retrieve report for",
@@ -30,11 +31,11 @@ if __name__ == "__main__":
                                  "capa", "staticantianalysis", "staticantiantianalysis",
                                  "strings", "memstrings", "fileops", "procops", "netops", "userland",
                                  "droppedfiles", "c2config"])
-    parser.add_argument("--output", "-o", type=str, default="output.json",
-                        help="JSON file in which report will be stored")
+    parser.add_argument("--output", "-o", type=str, required=True,
+                        help="Output directory in which JSON reports will be stored")
     args = parser.parse_args()
-    report = get_report_backend(args.submission_uuid, args.backend)
+    report = get_report_backend(args.uuid, args.backend)
 
     if report:
-        with open(args.output, "w") as f:
+        with open(os.path.join(args.output, f"{args.uuid}-{args.backend}.json"), "w") as f:
             json.dump(report, f)
