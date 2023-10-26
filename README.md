@@ -123,9 +123,25 @@ ELFEN provides an API to submit samples and retrieve analysis reports. Ready-to-
 
 ### API Token
 
+#### GUI
+
 To retrieve your API token, visit http://127.0.0.1:8000/api/token/ and login with your username and password. If you're using the default Django superuser, the credentials are `admin:admin`.
 
 You should now see two values: `access` and `refresh` tokens. The `access` token will be valid for 7 days after which it will have to be re-generated (visit http://127.0.0.1:8000/api/token/refresh/) using the `refresh` token (valid for 30 days).
+
+#### IPython
+
+To retrieve your API token, send a `POST` request to http://127.0.0.1:8000/api/token/ with your username and password. If you're using the default Django superuser, the credentials are `admin:admin`.
+
+```python
+import requests
+
+username, pwd = "admin", "admin"
+r = requests.post("http://127.0.0.1:8000/api/token/", json={"username":username, "password":pwd})
+
+r.json()
+{'refresh': '...', 'access': '...'}
+```
 
 ### Submitting Samples
 
