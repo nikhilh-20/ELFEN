@@ -1,3 +1,4 @@
+import os
 import json
 import argparse
 import requests
@@ -30,5 +31,5 @@ if __name__ == "__main__":
     report = get_report_task(args.uuid)
 
     if report:
-        with open(args.output, "w") as f:
+        with open(os.path.join(args.output, f"{args.uuid}.json"), "w") as f:
             json.dump(report, f)

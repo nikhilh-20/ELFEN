@@ -82,9 +82,10 @@ def elf_reports(request, submission_uuid):
                          "error_msg": "No submission UUID provided"})
 
     all_reports = get_all_reports(submission_uuid)
-    # Console output may contain non-UTF-8 characters which causes UnicodeDecodeError
-    # when requesting report through the API
-    all_reports["console_output"] = str(all_reports["console_output"], "ISO-8859-1")
+    if all_reports["console_output"]:
+        # Console output may contain non-UTF-8 characters which causes UnicodeDecodeError
+        # when requesting report through the API
+        all_reports["console_output"] = str(all_reports["console_output"], "ISO-8859-1")
 
     return Response({"submission_uuid": submission_uuid, "report": all_reports})
 
