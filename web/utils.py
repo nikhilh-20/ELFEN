@@ -29,7 +29,7 @@ LOG = logging.getLogger(__name__)
 
 
 def prep_file_submission(file, username, execution_time, execution_arguments,
-                         userland_tracing, additional_files):
+                         userland_tracing, enable_internet, additional_files):
     """
     This function writes the main sample and additional files to disk.
     It then constructs a dictionary containing analysis options and metadata.
@@ -44,6 +44,8 @@ def prep_file_submission(file, username, execution_time, execution_arguments,
     :type execution_arguments: str
     :param userland_tracing: Enable userland tracing for dynamic analysis
     :type userland_tracing: bool
+    :param enable_internet: Enable internet access for dynamic analysis
+    :type enable_internet: bool
     :param additional_files: Additional files submitted by user
     :type additional_files: list of django.core.files.uploadedfile.InMemoryUploadedFile
     :return: Status of writing file to disk, error message | analysis context
@@ -81,6 +83,7 @@ def prep_file_submission(file, username, execution_time, execution_arguments,
             "execution_time": execution_time,
             "execution_arguments": execution_arguments,
             "userland_tracing": userland_tracing,
+            "enable_internet": enable_internet,
         }
         return True, context
 

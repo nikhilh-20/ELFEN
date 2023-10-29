@@ -81,6 +81,7 @@ def start_hardcore_analysis(sample, context):
         status=TaskStatus.IN_PROGRESS,
         cmdline=exec_args,
         userland_tracing=context["userland_tracing"],
+        enable_internet=context["enable_internet"],
         taskreports=taskreports
     )
 

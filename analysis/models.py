@@ -83,6 +83,7 @@ class TaskMetadata(models.Model):
     detection = models.ForeignKey(Detection, on_delete=models.PROTECT, null=True)
     cmdline = models.CharField(max_length=4096, null=True)
     userland_tracing = models.BooleanField()
+    enable_internet = models.BooleanField()
     errors = models.BooleanField(default=False)
     error_msg = models.CharField(max_length=4096, default="")
     status = models.SmallIntegerField(choices=TaskStatusChoices.choices,

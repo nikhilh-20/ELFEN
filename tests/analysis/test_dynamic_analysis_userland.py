@@ -40,10 +40,10 @@ class DynamicAnalysisUserlandTestCase(TestCase):
         )
         features = apply_feature_extractor(sample, os.path.join(cls.bin_dir, sha256))
         arch, endian = features.arch, features.endian
-        image_info = get_image_info(arch, endian)
+        image_info = get_image_info(arch, endian, False)
         create_esxcli_files(cls.dynamic_analysis_dir)
         deploy_qemu(15, int(exec_time), arch, endian, cls.dynamic_analysis_dir,
-                    image_info)
+                    False, image_info)
 
     @classmethod
     def tearDownClass(cls):

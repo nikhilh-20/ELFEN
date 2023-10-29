@@ -50,9 +50,11 @@ def submit_elf(request):
         file = request.FILES["file"]
         additional_files = request.FILES.getlist("additional_files")
         userland_tracing = True if request.POST.get("userland_tracing", None) else False
+        enable_internet = True if request.POST.get("enable_internet", None) else False
         status, ret = prep_file_submission(file, request.user.username, request.POST["execution_time"],
                                            execution_arguments=request.POST.get("execution_arguments", ""),
                                            userland_tracing=userland_tracing,
+                                           enable_internet=enable_internet,
                                            additional_files=additional_files)
 
         if not status:

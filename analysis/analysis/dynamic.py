@@ -246,13 +246,14 @@ def start_analysis(context):
     exec_args = context["execution_arguments"]
     exec_time = context["execution_time"]
     userland_tracing = context["userland_tracing"]
+    enable_internet = context["enable_internet"]
 
     LOG.debug("Dynamic analysis context: "
               f"submission_id: {submission_id}, dirpath: {dirpath}, "
               f"sample_sha256={sample_sha256}, ",
               f"additional_files: {additional_files}, sample_path: {sample_path}, "
               f"exec_args: {exec_args}, exec_time: {exec_time}, "
-              f"userland_tracing: {userland_tracing}")
+              f"userland_tracing: {userland_tracing}, enable_internet: {enable_internet}")
 
     # Artifacts of dynamic analysis will be stored here.
     dynamic_analysis_dir = os.path.join(dirpath, "dynamic_analysis")
@@ -306,7 +307,7 @@ def start_analysis(context):
     # Get arch-specific sandbox image
     arch = samplefeatures.arch
     endian = samplefeatures.endian
-    linux_image_info = get_image_info(arch, endian)
+    linux_image_info = get_image_info(arch, endian, enable_internet)
     if linux_image_info.get("msg", None):
         err_msg = linux_image_info["msg"]
         LOG.error(err_msg)
@@ -336,7 +337,7 @@ def start_analysis(context):
         return
 
     status = deploy_qemu(15, int(exec_time), arch, endian, dynamic_analysis_dir,
-                         linux_image_info)
+                         enable_internet, linux_image_info)
     if not status:
         err_msg = "Failed to deploy QEMU"
         LOG.error(err_msg)

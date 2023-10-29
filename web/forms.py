@@ -93,5 +93,8 @@ class FileSubmissionForm(forms.Form):
                                           initial=True,
                                           help_text="Perform userland tracing",
                                           widget=forms.CheckboxInput(attrs={"class": "checkbox-inline"}))
+    enable_internet = forms.BooleanField(required=False, initial=False,
+                                         help_text="Enable internet access in sandbox",
+                                         widget=forms.CheckboxInput(attrs={"class": "checkbox-inline"}))
     # make_sample_public = forms.BooleanField(required=False, initial=True,
     #                                        help_text="Make sample and its analysis public")

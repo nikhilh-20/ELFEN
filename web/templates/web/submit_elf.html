@@ -52,6 +52,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <small style="color: red">{{ form.errors.userland_tracing|striptags|escape }}</small>
                 <small class="text-muted">{{ form.userland_tracing.help_text }}</small>
             </div>
+            <div class="form-group py-3" style="margin-top: 35px;">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Userland Trace?</label>
+                {{ form.enable_internet }}
+                <small style="color: red">{{ form.errors.enable_internet|striptags|escape }}</small>
+                <small class="text-muted">{{ form.enable_internet.help_text }}</small>
+            </div>
             {% comment %}
             <div class="form-group py-3">
                 {{ form.captcha }}
