@@ -29,7 +29,7 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
 
 
-def get_arch_image_zip(arch, endian):
+def get_arch_image_zip(arch, endian, enable_internet):
     """
     Based on the given arch, this function retrieves a clean Linux sandbox
     image ZIP.
@@ -38,31 +38,54 @@ def get_arch_image_zip(arch, endian):
     :type arch: str
     :param endian: Endianness of submitted sample.
     :type endian: str
+    :param enable_internet: Whether internet access is enabled for dynamic analysis
+    :type enable_internet: bool
     :return: Path to the sandbox image ZIP, error message if any
     :rtype: str|None, str
     """
     arch = arch.lower()
+
     if "amd64" in arch or "i386" in arch:
-        image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                 "x8664", "image.zip")
+        if enable_internet:
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "x8664", "image_net.zip")
+        else:
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "x8664", "image.zip")
     elif arch == "arm":
         if endian == "le":
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "arm", "image.zip")
+            if enable_internet:
+                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                         "arm", "image_net.zip")
+            else:
+                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                         "arm", "image.zip")
         else:
             return None, f"Unsupported endianness for dynamic analysis: {endian}"
     elif arch == "ppc":
-        image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                 "ppc", "image.zip")
+        if enable_internet:
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "ppc", "image_net.zip")
+        else:
+            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                     "ppc", "image.zip")
     elif arch == "mips":
         if endian == "be":
             # Big endian
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "mips", "image.zip")
+            if enable_internet:
+                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                         "mips", "image_net.zip")
+            else:
+                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                         "mips", "image.zip")
         elif endian == "le":
             # Little endian
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "mipsel", "image.zip")
+            if enable_internet:
+                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                         "mipsel", "image_net.zip")
+            else:
+                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                         "mipsel", "image.zip")
         else:
             return None, f"Unsupported endianness for dynamic analysis: {endian}"
     else:
@@ -71,7 +94,7 @@ def get_arch_image_zip(arch, endian):
     return image_zip, ""
 
 
-def get_image_info(arch, endian):
+def get_image_info(arch, endian, enable_internet):
     """
     Based on the given arch, this function retrieves a clean Linux sandbox
     image ZIP. It then unzips the kernel and root filesystem image,
@@ -81,6 +104,8 @@ def get_image_info(arch, endian):
     :type arch: str
     :param endian: Endianness of submitted sample.
     :type endian: str
+    :param enable_internet: Whether internet access is enabled for dynamic analysis
+    :type enable_internet: bool
     :return: Dict containing sandbox image-related filepaths.
     :rtype: dict
     """
@@ -91,7 +116,7 @@ def get_image_info(arch, endian):
     endian = endian.lower()
 
     if arch:
-        image_zip, err_msg = get_arch_image_zip(arch, endian)
+        image_zip, err_msg = get_arch_image_zip(arch, endian, enable_internet)
         if image_zip is None:
             ret["msg"] = err_msg
             return ret
@@ -132,7 +157,7 @@ def get_image_info(arch, endian):
     return ret
 
 
-def get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info):
+def get_qemu_cmd(arch, endian, dynamic_analysis_dir, enable_internet, linux_image_info):
     """
     Constructs the QEMU command-line string based on the given arguments.
 
@@ -143,6 +168,8 @@ def get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info):
     :param dynamic_analysis_dir: Host path where dynamic analysis artifacts
                                  will be stored
     :type dynamic_analysis_dir: str
+    :param enable_internet: Whether internet access is enabled for dynamic analysis
+    :type enable_internet: bool
     :param linux_image_info: Dictionary containing details about sandbox image
     :type linux_image_info: dict
     :return: QEMU command-line string
@@ -165,11 +192,19 @@ def get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info):
             return None
         kernel = linux_image_info["kernel"]
         root_filesystem = linux_image_info["filesystem"]
-        qemu_cmd = f"qemu-system-arm -M versatilepb -m 256 -kernel {kernel} -dtb {dtb} " \
-                   f"-drive file={root_filesystem},if=scsi,format=raw " \
-                   '-append "root=/dev/sda console=ttyAMA0,115200" -nographic ' \
-                   f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild " \
-                   "-device virtio-9p-pci,fsdev=guild,mount_tag=guild"
+        if enable_internet:
+            qemu_cmd = f"qemu-system-arm -M versatilepb -m 256 -kernel {kernel} -dtb {dtb} " \
+                       f"-drive file={root_filesystem},if=scsi,format=raw " \
+                       '-append "root=/dev/sda console=ttyAMA0,115200" -nographic ' \
+                       f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild " \
+                       "-netdev user,id=unet -device driver=virtio-net,netdev=unet " \
+                       "-device virtio-9p-pci,fsdev=guild,mount_tag=guild"
+        else:
+            qemu_cmd = f"qemu-system-arm -M versatilepb -m 256 -kernel {kernel} -dtb {dtb} " \
+                       f"-drive file={root_filesystem},if=scsi,format=raw " \
+                       '-append "root=/dev/sda console=ttyAMA0,115200" -nographic ' \
+                       f"-fsdev local,path={dynamic_analysis_dir},security_model=mapped-xattr,id=guild " \
+                       "-device virtio-9p-pci,fsdev=guild,mount_tag=guild"
     elif arch == "mips":
         endian = endian.lower()
         kernel = linux_image_info["kernel"]
@@ -205,7 +240,7 @@ def get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info):
 
 
 def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
-                linux_image_info):
+                enable_internet, linux_image_info):
     """
     Deploys QEMU-based sandbox for the given sample.
 
@@ -220,6 +255,8 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
     :param dynamic_analysis_dir: Host path where dynamic analysis artifacts
                                  will be stored
     :type dynamic_analysis_dir: str
+    :param enable_internet: Whether internet access is enabled for dynamic analysis
+    :type enable_internet: bool
     :param linux_image_info: Dictionary containing details about sandbox image
     :type linux_image_info: dict
     :return: Status of QEMU execution
@@ -230,7 +267,7 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
             linux_image_info.get("filesystem") is None):
         return None
 
-    qemu_cmd = get_qemu_cmd(arch, endian, dynamic_analysis_dir, linux_image_info)
+    qemu_cmd = get_qemu_cmd(arch, endian, dynamic_analysis_dir, enable_internet, linux_image_info)
 
     if qemu_cmd:
         try:
