@@ -29,7 +29,7 @@ def submit_samples(fpath, opath):
     with open(fpath, "r") as f:
         sample_paths = [ff.strip() for ff in f.readlines()]
 
-    data = {"execution_time": 60, "userland_tracing": True}
+    data = {"execution_time": 60, "userland_tracing": True, "machine": "auto"}
     headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
     for f in sample_paths:

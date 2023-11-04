@@ -37,8 +37,9 @@ def launch_detectors(static_reports, data):
 
     :param static_reports: StaticAnalysisReports object
     :type static_reports: analysis.analysis_models.static_analysis.StaticAnalysisReports
-    :param data: Data that a detector might need for making decisions
-    :type data: dict
+    :param data: Max score, triggered detectors, identified malware families,
+                 error message, if any
+    :type data: int, list, list, str
     """
     objs = []
 
@@ -73,8 +74,9 @@ def check_static_analysis(static_reports, execution_time, data):
     :type static_reports: analysis.analysis_models.static_analysis.StaticAnalysisReports
     :param execution_time: Execution time of the task
     :type execution_time: int
-    :param data: Data that a detector might need for making decisions
-    :type data: dict
+    :param data: Max score, triggered detectors, identified malware families,
+                 error message, if any
+    :type data: int, list, list, str
     """
     score, tags, detectors = 0, [], []
     err_msg = ""

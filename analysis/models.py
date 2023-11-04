@@ -76,6 +76,7 @@ class TaskMetadata(models.Model):
     # Using ForeignKey here because one sample can have multiple analyses
     # associated with it.
     sha256 = models.ForeignKey(SampleMetadata, on_delete=models.PROTECT)
+    machine = models.CharField(max_length=22, default="auto")
     taskreports = models.OneToOneField(TaskReports, on_delete=models.PROTECT,
                                        null=True)
     start_time = models.DateTimeField(auto_now=True)

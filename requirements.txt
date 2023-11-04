@@ -166,3 +166,4 @@ djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 python-magic==0.4.27
 python-tlsh==4.5.0
+py7zr==0.20.6

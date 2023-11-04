@@ -3,13 +3,13 @@ import signal
 import shutil
 import subprocess
 from django.conf import settings
-from django.test import TestCase, tag
+from django.test import TestCase
 
 from analysis.models import SampleMetadata
 from analysis.analysis.static import apply_feature_extractor
 from analysis.analysis.dynamic import create_esxcli_files
-from analysis.analysis.utils.dynamic.behavior import get_qemu_cmd, get_arch_image_zip,\
-                                                     get_image_info
+from analysis.analysis.utils.dynamic.behavior import get_qemu_cmd, get_arch_image_7z,\
+                                                     get_image_info, get_arch_endian_from_machine_name
 
 
 class SandboxDeploymentTestCase(TestCase):
@@ -27,6 +27,17 @@ class SandboxDeploymentTestCase(TestCase):
     def tearDown(self):
         shutil.rmtree(self.dynamic_analysis_dir, ignore_errors=True)
 
+    def test_check_user_choice_machine_image_retrieval(self):
+        """
+        Check if user choice's machine image is retrieved.
+        """
+        machine = "buildroot_armv5_32bit"
+        arch, endian = get_arch_endian_from_machine_name(machine)
+        image, _ = get_arch_image_7z(arch, endian, True)
+        self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
+                                             "ELFEN_images", "images",
+                                             "arm", "image_net.7z"))
+
     def test_check_correct_image_retrieval_no_internet(self):
         """
         Check if correct buildroot image is retrieved for a given binary's
@@ -42,10 +53,10 @@ class SandboxDeploymentTestCase(TestCase):
         features = apply_feature_extractor(sample, os.path.join(self.bin_dir, sha256))
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "amd64")
-        image, _ = get_arch_image_zip(arch, endian, False)
+        image, _ = get_arch_image_7z(arch, endian, False)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "x8664", "image.zip"))
+                                             "x8664", "image.7z"))
 
         sha256 = "f8f40609bf7440a468864b63b1687409d28113abd76302108360bcc7d80567d9"
         sample = SampleMetadata.objects.create(
@@ -58,10 +69,10 @@ class SandboxDeploymentTestCase(TestCase):
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "arm")
         self.assertEqual(endian, "le")
-        image, _ = get_arch_image_zip(arch, endian, False)
+        image, _ = get_arch_image_7z(arch, endian, False)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "arm", "image.zip"))
+                                             "arm", "image.7z"))
 
         sha256 = "f188329c9f1118f923c80a8a7bba2013c0f9f4016e807504e3d8124b27490700"
         sample = SampleMetadata.objects.create(
@@ -74,10 +85,10 @@ class SandboxDeploymentTestCase(TestCase):
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "mips")
         self.assertEqual(endian, "be")
-        image, _ = get_arch_image_zip(arch, endian, False)
+        image, _ = get_arch_image_7z(arch, endian, False)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "mips", "image.zip"))
+                                             "mips", "image.7z"))
 
         sha256 = "580a0ba6c9615fa2a211ac93692f8b7ee79de6871f391d84fbd46fec59c4fec7"
         sample = SampleMetadata.objects.create(
@@ -90,10 +101,10 @@ class SandboxDeploymentTestCase(TestCase):
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "mips")
         self.assertEqual(endian, "le")
-        image, _ = get_arch_image_zip(arch, endian, False)
+        image, _ = get_arch_image_7z(arch, endian, False)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "mipsel", "image.zip"))
+                                             "mipsel", "image.7z"))
 
         sha256 = "572ded5ac526803942809cd44ecaafb48081cda422093f53514ad3d9126d8d0e"
         sample = SampleMetadata.objects.create(
@@ -105,10 +116,10 @@ class SandboxDeploymentTestCase(TestCase):
         features = apply_feature_extractor(sample, os.path.join(self.bin_dir, sha256))
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "ppc")
-        image, _ = get_arch_image_zip(arch, endian, False)
+        image, _ = get_arch_image_7z(arch, endian, False)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "ppc", "image.zip"))
+                                             "ppc", "image.7z"))
 
     def test_check_correct_image_retrieval_internet(self):
         """
@@ -125,10 +136,10 @@ class SandboxDeploymentTestCase(TestCase):
         features = apply_feature_extractor(sample, os.path.join(self.bin_dir, sha256))
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "amd64")
-        image, _ = get_arch_image_zip(arch, endian, True)
+        image, _ = get_arch_image_7z(arch, endian, True)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "x8664", "image_net.zip"))
+                                             "x8664", "image_net.7z"))
 
         sha256 = "f8f40609bf7440a468864b63b1687409d28113abd76302108360bcc7d80567d9"
         sample = SampleMetadata.objects.create(
@@ -141,10 +152,10 @@ class SandboxDeploymentTestCase(TestCase):
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "arm")
         self.assertEqual(endian, "le")
-        image, _ = get_arch_image_zip(arch, endian, True)
+        image, _ = get_arch_image_7z(arch, endian, True)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "arm", "image_net.zip"))
+                                             "arm", "image_net.7z"))
 
         sha256 = "f188329c9f1118f923c80a8a7bba2013c0f9f4016e807504e3d8124b27490700"
         sample = SampleMetadata.objects.create(
@@ -157,10 +168,10 @@ class SandboxDeploymentTestCase(TestCase):
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "mips")
         self.assertEqual(endian, "be")
-        image, _ = get_arch_image_zip(arch, endian, True)
+        image, _ = get_arch_image_7z(arch, endian, True)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "mips", "image_net.zip"))
+                                             "mips", "image_net.7z"))
 
         sha256 = "580a0ba6c9615fa2a211ac93692f8b7ee79de6871f391d84fbd46fec59c4fec7"
         sample = SampleMetadata.objects.create(
@@ -173,10 +184,10 @@ class SandboxDeploymentTestCase(TestCase):
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "mips")
         self.assertEqual(endian, "le")
-        image, _ = get_arch_image_zip(arch, endian, True)
+        image, _ = get_arch_image_7z(arch, endian, True)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "mipsel", "image_net.zip"))
+                                             "mipsel", "image_net.7z"))
 
         sha256 = "572ded5ac526803942809cd44ecaafb48081cda422093f53514ad3d9126d8d0e"
         sample = SampleMetadata.objects.create(
@@ -188,10 +199,10 @@ class SandboxDeploymentTestCase(TestCase):
         features = apply_feature_extractor(sample, os.path.join(self.bin_dir, sha256))
         arch, endian = features.arch.lower(), features.endian.lower()
         self.assertEqual(arch, "ppc")
-        image, _ = get_arch_image_zip(arch, endian, True)
+        image, _ = get_arch_image_7z(arch, endian, True)
         self.assertEqual(image, os.path.join(settings.BASE_DIR, "rsrc",
                                              "ELFEN_images", "images",
-                                             "ppc", "image_net.zip"))
+                                             "ppc", "image_net.7z"))
 
     def test_check_esxcli_files_creation(self):
         """

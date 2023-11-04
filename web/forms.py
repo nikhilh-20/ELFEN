@@ -26,6 +26,15 @@ EXECUTION_TIME = (
     (100, "100s")
 )
 
+MACHINE_IMAGES = (
+    ("auto", "Auto Select"),
+    ("buildroot_x64", "Buildroot x64"),
+    ("buildroot_mips_32bit", "Buildroot MIPS BE 32-bit"),
+    ("buildroot_mipsel_32bit", "Buildroot MIPS LE 32-bit"),
+    ("buildroot_armv5_32bit", "Buildroot ARMv5 LE 32-bit"),
+    ("buildroot_ppc_32bit", "Buildroot PowerPC BE 32-bit"),
+)
+
 
 class RegistrationForm(UserCreationForm):
     """
@@ -77,6 +86,10 @@ class FileSubmissionForm(forms.Form):
     additional_files = MultipleFileField(help_text="Dependencies will be placed in the same"
                                                    " directory as the main sample",
                                          required=False)
+    machine = forms.ChoiceField(choices=MACHINE_IMAGES,
+                                label="Machine for Dynamic Analysis",
+                                help_text="Select the machine image to use for dynamic analysis",
+                                widget=forms.Select(attrs={"class": "form-control"}))
     execution_time = forms.ChoiceField(choices=EXECUTION_TIME,
                                        label="Dynamic Execution Time",
                                        help_text="Number of seconds for which to perform"
