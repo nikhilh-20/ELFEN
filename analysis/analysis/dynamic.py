@@ -26,7 +26,8 @@ from random import choice
 from celery import shared_task
 from string import ascii_letters
 
-from analysis.analysis.utils.dynamic.behavior import get_image_info, deploy_qemu
+from analysis.analysis.utils.dynamic.behavior import get_image_info, deploy_qemu,\
+                                                     get_arch_endian_from_machine_name
 from analysis.analysis.utils.dynamic.dynamic import analyze_trace
 from analysis.analysis.utils.dynamic.esxcli_files import create_esxcli_files
 from analysis.analysis_models.utils import TaskStatus
@@ -243,6 +244,7 @@ def start_analysis(context):
     # should not run. Period. It should not be fixed and then executed because
     # that's not the *behavior* of the submitted sample.
     sample_path = context["sample_path"]
+    machine = context["machine"]
     exec_args = context["execution_arguments"]
     exec_time = context["execution_time"]
     userland_tracing = context["userland_tracing"]
@@ -252,7 +254,7 @@ def start_analysis(context):
               f"submission_id: {submission_id}, dirpath: {dirpath}, "
               f"sample_sha256={sample_sha256}, ",
               f"additional_files: {additional_files}, sample_path: {sample_path}, "
-              f"exec_args: {exec_args}, exec_time: {exec_time}, "
+              f"machine: {machine}, exec_args: {exec_args}, exec_time: {exec_time}, "
               f"userland_tracing: {userland_tracing}, enable_internet: {enable_internet}")
 
     # Artifacts of dynamic analysis will be stored here.
@@ -268,45 +270,49 @@ def start_analysis(context):
     if not status:
         return
 
-    # Wait for static analysis to finish extracting sample features. This should
-    # be fairly quick. One of these feature is the target architecture. Wait for
-    # maximum of 10m (arbitrary threshold).
-    LOG.debug(f"Waiting for static analysis to finish extracting sample features"
-              f"for submission_id: {submission_id}")
-    samplefeatures = None
-    start_wait = time.time()
-    while time.time() - start_wait < 600:
-        static_analysis_report = TaskMetadata.objects.get(uuid=submission_id).\
-                                    taskreports.static_reports
+    if machine == "auto":
+        # Wait for static analysis to finish extracting sample features. This should
+        # be fairly quick. One of these feature is the target architecture. Wait for
+        # maximum of 10m (arbitrary threshold).
+        LOG.debug(f"Waiting for static analysis to finish extracting sample features"
+                  f"for submission_id: {submission_id}")
+        samplefeatures = None
+        start_wait = time.time()
+        while time.time() - start_wait < 600:
+            static_analysis_report = TaskMetadata.objects.get(uuid=submission_id).\
+                                        taskreports.static_reports
 
-        if (static_analysis_report and
-                static_analysis_report.samplefeatures is not None):
-            samplefeatures = static_analysis_report.samplefeatures
-            LOG.debug(f"Got samplefeatures: {samplefeatures} from "
-                      f"StaticAnalysisReports table")
-            break
+            if (static_analysis_report and
+                    static_analysis_report.samplefeatures is not None):
+                samplefeatures = static_analysis_report.samplefeatures
+                LOG.debug(f"Got samplefeatures: {samplefeatures} from "
+                          f"StaticAnalysisReports table")
+                break
 
-        LOG.debug("Sleeping for 5s before checking again")
-        time.sleep(5)
+            LOG.debug("Sleeping for 5s before checking again")
+            time.sleep(5)
 
-    if not samplefeatures:
-        err_msg = "Could not determine architecture from static analysis"\
-                  "Not going to guess target Linux arch and waste time. "\
-                  "Skipping dynamic analysis."
-        LOG.error(err_msg)
-        dynamic_analysis_report.status = TaskStatus.ERROR
-        dynamic_analysis_report.errors = True
-        dynamic_analysis_report.error_msg = err_msg
-        dynamic_analysis_report.save(update_fields=["status", "errors", "error_msg"])
-        task_reports.status = TaskStatus.ERROR
-        task_reports.error_msg += f"{err_msg},"
-        task_reports.errors = True
-        task_reports.save(update_fields=["status", "errors", "error_msg"])
-        return
+        if not samplefeatures:
+            err_msg = "Could not determine architecture from static analysis"\
+                      "Not going to guess target Linux arch and waste time. "\
+                      "Skipping dynamic analysis."
+            LOG.error(err_msg)
+            dynamic_analysis_report.status = TaskStatus.ERROR
+            dynamic_analysis_report.errors = True
+            dynamic_analysis_report.error_msg = err_msg
+            dynamic_analysis_report.save(update_fields=["status", "errors", "error_msg"])
+            task_reports.status = TaskStatus.ERROR
+            task_reports.error_msg += f"{err_msg},"
+            task_reports.errors = True
+            task_reports.save(update_fields=["status", "errors", "error_msg"])
+            return
 
-    # Get arch-specific sandbox image
-    arch = samplefeatures.arch
-    endian = samplefeatures.endian
+        # Derive arch, endian from extracted sample features
+        arch = samplefeatures.arch
+        endian = samplefeatures.endian
+    else:
+        # Get arch, endian as per user machine choice
+        arch, endian = get_arch_endian_from_machine_name(machine)
     linux_image_info = get_image_info(arch, endian, enable_internet)
     if linux_image_info.get("msg", None):
         err_msg = linux_image_info["msg"]

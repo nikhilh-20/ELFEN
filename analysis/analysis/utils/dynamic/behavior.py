@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 import time
+import py7zr
 import signal
 import logging
-import zipfile
 import subprocess
 from random import choice
 from string import ascii_letters
@@ -29,10 +29,34 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
 
 
-def get_arch_image_zip(arch, endian, enable_internet):
+def get_arch_endian_from_machine_name(machine):
+    """
+    This function derives the architecture and endian based on the machine name.
+    Tbh, there's nothing to derive. The machine name encodes the arch and endian.
+
+    :param machine: Machine name to be used for dynamic analysis as specified
+                    by the user
+    :type machine: str
+    :return: Architecture and endian
+    :rtype: str, str
+    """
+    if machine == "buildroot_x64":
+        return "x86_64", "le"
+    elif machine == "buildroot_mips_32bit":
+        return "mips", "be"
+    elif machine == "buildroot_mipsel_32bit":
+        return "mips", "le"
+    elif machine == "buildroot_armv5_32bit":
+        return "arm", "le"
+    elif machine == "buildroot_ppc_32bit":
+        return "ppc", "be"
+    return None, None
+
+
+def get_arch_image_7z(arch, endian, enable_internet):
     """
     Based on the given arch, this function retrieves a clean Linux sandbox
-    image ZIP.
+    image 7z.
 
     :param arch: Architecture of submitted sample.
     :type arch: str
@@ -40,64 +64,64 @@ def get_arch_image_zip(arch, endian, enable_internet):
     :type endian: str
     :param enable_internet: Whether internet access is enabled for dynamic analysis
     :type enable_internet: bool
-    :return: Path to the sandbox image ZIP, error message if any
+    :return: Path to the sandbox image 7z, error message if any
     :rtype: str|None, str
     """
     arch = arch.lower()
 
     if "amd64" in arch or "i386" in arch:
         if enable_internet:
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "x8664", "image_net.zip")
+            image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                    "x8664", "image_net.7z")
         else:
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "x8664", "image.zip")
+            image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                    "x8664", "image.7z")
     elif arch == "arm":
         if endian == "le":
             if enable_internet:
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "arm", "image_net.zip")
+                image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                        "arm", "image_net.7z")
             else:
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "arm", "image.zip")
+                image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                        "arm", "image.7z")
         else:
             return None, f"Unsupported endianness for dynamic analysis: {endian}"
     elif arch == "ppc":
         if enable_internet:
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "ppc", "image_net.zip")
+            image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                    "ppc", "image_net.7z")
         else:
-            image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                     "ppc", "image.zip")
+            image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                    "ppc", "image.7z")
     elif arch == "mips":
         if endian == "be":
             # Big endian
             if enable_internet:
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "mips", "image_net.zip")
+                image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                        "mips", "image_net.7z")
             else:
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "mips", "image.zip")
+                image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                        "mips", "image.7z")
         elif endian == "le":
             # Little endian
             if enable_internet:
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "mipsel", "image_net.zip")
+                image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                        "mipsel", "image_net.7z")
             else:
-                image_zip = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
-                                         "mipsel", "image.zip")
+                image_7z = os.path.join(settings.BASE_DIR, "rsrc", "ELFEN_images", "images",
+                                        "mipsel", "image.7z")
         else:
             return None, f"Unsupported endianness for dynamic analysis: {endian}"
     else:
         return None, f"Unsupported architecture for dynamic analysis: {arch}"
 
-    return image_zip, ""
+    return image_7z, ""
 
 
 def get_image_info(arch, endian, enable_internet):
     """
     Based on the given arch, this function retrieves a clean Linux sandbox
-    image ZIP. It then unzips the kernel and root filesystem image,
+    image 7z. It then decompresses the kernel and root filesystem image,
     writes them to disk and returns the full path to it.
 
     :param arch: Architecture of submitted sample.
@@ -116,18 +140,19 @@ def get_image_info(arch, endian, enable_internet):
     endian = endian.lower()
 
     if arch:
-        image_zip, err_msg = get_arch_image_zip(arch, endian, enable_internet)
-        if image_zip is None:
+        image_7z, err_msg = get_arch_image_7z(arch, endian, enable_internet)
+        if image_7z is None:
             ret["msg"] = err_msg
             return ret
     else:
         ret["msg"] = "Unknown architecture for dynamic analysis"
         return ret
 
-    LOG.debug(f"Using sandbox image zip: {image_zip}")
+    LOG.debug(f"Using sandbox image 7z: {image_7z}")
     tmpdir = os.path.join("/tmp", "".join(choice(ascii_letters) for i in range(8)))
-    with zipfile.ZipFile(image_zip, "r") as zip_ref:
-        zip_ref.extractall(tmpdir, pwd=b"elfensandboximage")
+    with py7zr.SevenZipFile(image_7z, mode="r", password="elfensandboximage") as archive:
+        archive.extractall(tmpdir)
+
     if "amd64" in arch or "i386" in arch:
         ret.update({
             "tmpdir": tmpdir,
@@ -154,6 +179,11 @@ def get_image_info(arch, endian, enable_internet):
             "kernel": os.path.join(tmpdir, "uImage"),
             "filesystem": os.path.join(tmpdir, "rootfs.ext2"),
         })
+    else:
+        ret.update({
+            "msg": f"Unsupported architecture for dynamic analysis: {arch}"
+        })
+
     return ret
 
 
@@ -263,9 +293,6 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
     :rtype: bool
     """
     LOG.debug(f"Deploying QEMU VM for architecture: {arch}")
-    if (linux_image_info.get("kernel") is None or
-            linux_image_info.get("filesystem") is None):
-        return None
 
     qemu_cmd = get_qemu_cmd(arch, endian, dynamic_analysis_dir, enable_internet, linux_image_info)
 
@@ -279,8 +306,10 @@ def deploy_qemu(polling_interval, exec_time, arch, endian, dynamic_analysis_dir,
             proc = subprocess.Popen(qemu_cmd, shell=True, preexec_fn=os.setsid)
             parent_pid = proc.pid
             LOG.debug(f"QEMU process PID: {parent_pid}")
+
             # There is ~6s setup before the sample actually starts running
             time.sleep(exec_time+6)
+
             # Poll for 10 times to check if the process is still running.
             num_polled = 0
             while proc.poll() is None and num_polled < 10:

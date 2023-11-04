@@ -77,6 +77,7 @@ def start_hardcore_analysis(sample, context):
     task = TaskMetadata.objects.create(
         uuid=submission_id,
         sha256=sample,
+        machine=context["machine"],
         errors=False,
         status=TaskStatus.IN_PROGRESS,
         cmdline=exec_args,

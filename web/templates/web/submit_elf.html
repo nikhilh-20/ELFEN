@@ -35,6 +35,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <small class="text-muted">{{ form.additional_files.help_text }}</small>
             </div>
             <div class="form-group py-3">
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Machine</label>
+                {{ form.machine }}
+                <small style="color: red">{{ form.errors.machine|striptags|escape }}</small>
+                <small class="text-muted">{{ form.machine.help_text }}</small>
+            </div>
+            <div class="form-group py-3">
                 <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Execution Time</label>
                 {{ form.execution_time }}
                 <small style="color: red">{{ form.errors.execution_time|striptags|escape }}</small>
@@ -53,7 +59,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 <small class="text-muted">{{ form.userland_tracing.help_text }}</small>
             </div>
             <div class="form-group py-3" style="margin-top: 35px;">
-                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Userland Trace?</label>
+                <label class="form-label" style="color: antiquewhite; padding-right: 30px;">Enable Internet Access?</label>
                 {{ form.enable_internet }}
                 <small style="color: red">{{ form.errors.enable_internet|striptags|escape }}</small>
                 <small class="text-muted">{{ form.enable_internet.help_text }}</small>

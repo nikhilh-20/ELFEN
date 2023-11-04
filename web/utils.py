@@ -28,8 +28,9 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
 
 
-def prep_file_submission(file, username, execution_time, execution_arguments,
-                         userland_tracing, enable_internet, additional_files):
+def prep_file_submission(file, username, execution_time, machine,
+                         execution_arguments, userland_tracing,
+                         enable_internet, additional_files):
     """
     This function writes the main sample and additional files to disk.
     It then constructs a dictionary containing analysis options and metadata.
@@ -40,6 +41,8 @@ def prep_file_submission(file, username, execution_time, execution_arguments,
     :type username: str
     :param execution_time: Execution time for dynamic analysis
     :type execution_time: str
+    :param machine: Machine to use for dynamic analysis
+    :type machine: str
     :param execution_arguments: Execution arguments for dynamic analysis
     :type execution_arguments: str
     :param userland_tracing: Enable userland tracing for dynamic analysis
@@ -80,6 +83,7 @@ def prep_file_submission(file, username, execution_time, execution_arguments,
             "dirpath": dirpath,
             "file_hashes": hashes,
             "additional_files": additional_files_names,
+            "machine": machine,
             "execution_time": execution_time,
             "execution_arguments": execution_arguments,
             "userland_tracing": userland_tracing,

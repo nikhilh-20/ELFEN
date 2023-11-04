@@ -39,8 +39,9 @@ def launch_detectors(dynamic_reports, data):
 
     :param dynamic_reports: DynamicAnalysisReports object
     :type dynamic_reports: analysis.analysis_models.dynamic_analysis.DynamicAnalysisReports
-    :param data: Data that a detector might need for making decisions
-    :type data: dict
+    :param data: Max score, triggered detectors, identified malware families,
+                 error message, if any
+    :type data: int, list, list, str
     """
     objs = []
 
@@ -75,8 +76,9 @@ def check_dynamic_analysis(dynamic_reports, execution_time, data):
     :type dynamic_reports: analysis.analysis_models.dynamic_analysis.DynamicAnalysisReports
     :param execution_time: Execution time of the task
     :type execution_time: int
-    :param data: Data that a detector might need for making decisions
-    :type data: dict
+    :param data: Max score, triggered detectors, identified malware families,
+                 error message, if any
+    :type data: int, list, list, str
     """
     score, tags, detectors = 0, [], []
     err_msg = ""

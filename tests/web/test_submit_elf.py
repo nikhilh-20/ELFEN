@@ -64,7 +64,8 @@ class SubmitElfTestCase(TestCase):
 
         response = self.client.post(self.submit_elf_url, {"file": file_,
                                                           "userland_tracing": False,
-                                                          "execution_time": 60},
+                                                          "execution_time": 60,
+                                                          "machine": "auto"},
                                     format='multipart')
         self.assertEqual(response.status_code, 302)
 
@@ -95,7 +96,8 @@ class SubmitElfTestCase(TestCase):
 
         response = self.client.post(self.submit_elf_url, {"file": file_,
                                                           "userland_tracing": True,
-                                                          "execution_time": 60},
+                                                          "execution_time": 60,
+                                                          "machine": "auto"},
                                     format='multipart')
         self.assertEqual(response.status_code, 302)
 
@@ -126,6 +128,7 @@ class SubmitElfTestCase(TestCase):
 
         response = self.client.post(self.submit_elf_url, {"file": file_,
                                                           "enable_internet": True,
-                                                          "execution_time": 60},
+                                                          "execution_time": 60,
+                                                          "machine": "auto"},
                                     format='multipart')
         self.assertEqual(response.status_code, 302)

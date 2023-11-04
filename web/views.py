@@ -100,6 +100,7 @@ def submit_elf(request):
             exec_args = request.POST.get("execution_arguments", "")
             status, ret = prep_file_submission(file, request.user.username,
                                                request.POST["execution_time"],
+                                               request.POST.get("machine"),
                                                execution_arguments=exec_args,
                                                userland_tracing=userland_tracing,
                                                enable_internet=enable_internet,
