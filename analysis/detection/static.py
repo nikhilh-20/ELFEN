@@ -66,20 +66,21 @@ def launch_detectors(static_reports, data):
     return score, triggered_detectors, malware_families, err_msg
 
 
-def check_static_analysis(static_reports, execution_time, data):
+def check_static_analysis(static_reports, data):
     """
     Examines static analysis reports to generate a score for the task.
 
     :param static_reports: StaticAnalysisReports object
     :type static_reports: analysis.analysis_models.static_analysis.StaticAnalysisReports
-    :param execution_time: Execution time of the task
-    :type execution_time: int
-    :param data: Max score, triggered detectors, identified malware families,
+    :param data: Analysis metadata such as submission UUID, compiled set of YARA
+                 rules, dynamic analysis directory, etc.
+    :type data: dict
+    :return: Max score, triggered detectors, identified malware families,
                  error message, if any
-    :type data: int|None, list, list, str
+    :rtype: int|None, list, list, str
     """
     score, tags, detectors = 0, [], []
-    err_msg = ""
+    err_msg, execution_time = "", data["execution_time"]
     if static_reports.status == TaskStatus.ERROR:
         return score, detectors, tags, err_msg
 
@@ -97,6 +98,6 @@ def check_static_analysis(static_reports, execution_time, data):
         if (datetime.datetime.now() - start_time).seconds > (execution_time + time_delta):
             err_msg = f"Static analysis took too long to complete: >{execution_time + time_delta}s"
             LOG.error(err_msg)
-            return None, detectors, tags, err_msg
+            return score, detectors, tags, err_msg
 
     return launch_detectors(static_reports, data)

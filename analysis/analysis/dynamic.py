@@ -222,7 +222,7 @@ def start_analysis(context):
     sample_sha256 = context["file_hashes"]["sha256"]
     sample = SampleMetadata.objects.get(sha256=sample_sha256)
     dirpath = context["dirpath"]
-    submission_id = os.path.basename(os.path.normpath(dirpath))
+    submission_id = context["submission_uuid"]
 
     parent_task = TaskMetadata.objects.get(uuid=submission_id)
     LOG.debug(f"Got parent task: {parent_task} from TaskMetadata table")

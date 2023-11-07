@@ -68,20 +68,21 @@ def launch_detectors(dynamic_reports, data):
     return score, triggered_detectors, list(set(malware_families)), err_msg
 
 
-def check_dynamic_analysis(dynamic_reports, execution_time, data):
+def check_dynamic_analysis(dynamic_reports, data):
     """
     Examines dynamic analysis reports to generate a score for the task
 
     :param dynamic_reports: DynamicAnalysisReports object
     :type dynamic_reports: analysis.analysis_models.dynamic_analysis.DynamicAnalysisReports
-    :param execution_time: Execution time of the task
-    :type execution_time: int
-    :param data: Max score, triggered detectors, identified malware families,
+    :param data: Analysis metadata such as submission UUID, compiled set of YARA
+                 rules, dynamic analysis directory, etc.
+    :type data: dict
+    :return: Max score, triggered detectors, identified malware families,
                  error message, if any
-    :type data: int|None, list, list, str
+    :rtype: int|None, list, list, str
     """
     score, tags, detectors = 0, [], []
-    err_msg = ""
+    err_msg, execution_time = "", data["execution_time"]
     if dynamic_reports.status == TaskStatus.ERROR:
         return score, detectors, tags, err_msg
 
