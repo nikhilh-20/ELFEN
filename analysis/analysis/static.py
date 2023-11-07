@@ -368,7 +368,7 @@ def start_analysis(context):
     """
     LOG.debug(f"Starting static analysis")
     dirpath = context["dirpath"]
-    submission_id = os.path.basename(os.path.normpath(dirpath))
+    submission_id = context["submission_uuid"]
     sample_sha256 = context["file_hashes"]["sha256"]
     sample = SampleMetadata.objects.get(sha256=sample_sha256)
     additional_files = context["additional_files"]

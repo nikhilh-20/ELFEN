@@ -71,11 +71,10 @@ def start_hardcore_analysis(sample, context):
     LOG.debug("Creating TaskMetadata object and starting hardcore analysis")
     # There should be no exception raised when creating a task object.
     # If there is an exception, it's a bug.
-    submission_id = os.path.basename(os.path.normpath(context["dirpath"]))
     taskreports = TaskReports.objects.create(status=TaskStatus.IN_PROGRESS)
     exec_args = context["execution_arguments"][:TaskMetadata._meta.get_field("cmdline").max_length]
     task = TaskMetadata.objects.create(
-        uuid=submission_id,
+        uuid=context["submission_uuid"],
         sha256=sample,
         machine=context["machine"],
         errors=False,
