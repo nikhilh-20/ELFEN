@@ -118,7 +118,16 @@ NetworkEvents = {
     ListenEvent: {
         "args": ["fd", "backlog"],
         "ret": None
+    },
+    SendToEvent: {
+        "args": ["fd", "buffer", "size"],
+        "ret": None
+    },
+    RecvFromEvent: {
+        "args": ["fd", "buffer", "size"],
+        "ret": None
     }
+
 }
 
 UserlandEvents = {

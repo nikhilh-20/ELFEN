@@ -116,7 +116,15 @@ SYSCALL_MODEL_MAPPINGS = {
     "listen": {
         "model": ListenEvent,
         "event_fields": ["ts", "pid", "procname", "fd", "backlog"]
-    }
+    },
+    "sendto": {
+        "model": SendToEvent,
+        "event_fields": ["ts", "pid", "procname", "fd", "buffer", "size"]
+    },
+    "recvfrom": {
+        "model": RecvFromEvent,
+        "event_fields": ["ts", "pid", "procname", "fd", "buffer", "size"]
+    },
 }
 
 

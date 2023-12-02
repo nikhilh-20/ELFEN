@@ -218,6 +218,28 @@ class ListenEvent(models.Model):
     backlog = models.IntegerField(null=True)
 
 
+class SendToEvent(models.Model):
+    sample = models.ForeignKey(SampleMetadata, on_delete=models.PROTECT)
+    kernel_trace = models.ForeignKey(KernelTrace, on_delete=models.CASCADE)
+    ts = models.TimeField(null=True)
+    pid = models.PositiveSmallIntegerField(null=True)
+    procname = models.BinaryField(max_length=128, null=True)
+    fd = models.BigIntegerField(null=True)
+    buffer = models.BinaryField(max_length=128, null=True)
+    size = models.PositiveIntegerField(null=True)
+
+
+class RecvFromEvent(models.Model):
+    sample = models.ForeignKey(SampleMetadata, on_delete=models.PROTECT)
+    kernel_trace = models.ForeignKey(KernelTrace, on_delete=models.CASCADE)
+    ts = models.TimeField(null=True)
+    pid = models.PositiveSmallIntegerField(null=True)
+    procname = models.BinaryField(max_length=128, null=True)
+    fd = models.BigIntegerField(null=True)
+    buffer = models.BinaryField(max_length=128, null=True)
+    size = models.PositiveIntegerField(null=True)
+
+
 class StrcmpEvent(models.Model):
     sample = models.ForeignKey(SampleMetadata, on_delete=models.PROTECT)
     userland_trace = models.ForeignKey(UserlandTrace, on_delete=models.CASCADE)
