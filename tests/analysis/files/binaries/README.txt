@@ -9,3 +9,4 @@ a7df93896cced4e217d696b6b0bbfb259ded4e80d05652c31646e7b4b86827ab: ELF64, Severel
 ec399f4c159c07e8f7a89a7da1cc700bc17d8ccd600b7e5a56bd36bb77b622a6: ELF64, Binary to test calls to fork(), getpid(), getppid(), execve(), prctl()
 d69177f28e1b9079053e30dbc67fffdece2439850b4c4c2df53c0af33b6e6125: ELF64, Binary to test calls to socket(), setsockopt(), bind(), connect(), listen()
 e4d10b0142721c42d55f2bfa975003981d20058eccf577939180aa5f0fa0c4dd: ELF64, Binary to test calls to libc functions - strcmp(), strncmp(), strstr(), strcpy(), strncpy()
+c563067392e6ff7ee1a668ecb695d9f449bb7c4c60693d4505be87297d9118ce: ELF64, Binary to test calls to sendto(), recvfrom()

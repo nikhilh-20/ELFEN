@@ -25,7 +25,8 @@ PLY_TRACERS = {
     "fileops": FILEOPS_EVENTS,
     "procops": PROCOPS_EVENTS,
     "fcntlops": FCNTLOPS_EVENTS,
-    "netops": NETOPS_EVENTS
+    "netops": NETOPS_EVENTS,
+    "netcomms": NETCOMMS_EVENTS,
 }
 
 USERLAND_TRACERS = {

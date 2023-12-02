@@ -59,6 +59,11 @@ NETOPS_EVENTS = {
     b"LISTEN": [6],
 }
 
+NETCOMMS_EVENTS = {
+    b"SENDTO": [7],
+    b"RECVFROM": [7],
+}
+
 # When changing this set, also update reporting/enum.py and
 # USERLAND_MODEL_MAPPINGS in store_features.py
 STR_USERLAND_EVENTS = {
@@ -113,7 +118,7 @@ def get_kernel_behavior_groups():
     return {
         "file_operations": list(FCNTLOPS_EVENTS.keys()) + list(FILEOPS_EVENTS.keys()),
         "process_operations": list(PROCOPS_EVENTS.keys()),
-        "network_operations": list(NETOPS_EVENTS.keys())
+        "network_operations": list(NETOPS_EVENTS.keys()) + list(NETCOMMS_EVENTS.keys())
     }
 
 
@@ -1082,4 +1087,90 @@ def extract_listen_features(listen_trace_line, endian=None, feature_=None):
         return feature_
 
     LOG.debug(f"Extracted listen features: {feature_}")
+    return feature_
+
+
+def extract_sendto_features(sendto_trace_line, endian=None, feature_=None):
+    """
+    Given a trace line for sendto syscall, extract relevant features:
+    socket fd, buffer, buffer length
+
+    An example trace line is:
+    SENDTO,10:39:03.030701375,143,ping,3,<data>,28
+    This is of format:
+    syscall_name,timestamp,process_id,process_name,socket_fd,data buffer,buffer length
+
+    :param sendto_trace_line: Trace line for sendto syscall
+    :type sendto_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
+    :param feature_: Already extracted features: event name, PID, timestamp, process name
+    :type feature_: dict
+    :return: Additional extracted features
+    :rtype: dict
+    """
+    if feature_ is None:
+        feature_ = {}
+    tokens = sendto_trace_line.strip(b"\n").split(b",")
+
+    try:
+        num_bytes_to_read = int(tokens[6])
+        feature_.update({
+            "fd": int(tokens[4]),
+            # I read 64 bytes by default inside the tracer, so if num_bytes_to_read
+            # is less than 64, than I'll show the appropriate number of bytes to
+            # the user.
+            "buffer": tokens[5][:num_bytes_to_read],
+            "size": num_bytes_to_read
+        })
+    except (IndexError, ValueError):
+        # Unexpected trace line
+        LOG.error(f"Unexpected SENDTO trace line: {sendto_trace_line}")
+        feature_.update({"fd": None, "buffer": None, "size": None})
+        return feature_
+
+    LOG.debug(f"Extracted sendto features: {feature_}")
+    return feature_
+
+
+def extract_recvfrom_features(recvfrom_trace_line, endian=None, feature_=None):
+    """
+    Given a trace line for recvfrom syscall, extract relevant features:
+    socket fd, buffer, buffer length
+
+    An example trace line is:
+    RECVFROM,10:40:03.030701375,143,ping,3,<data>,1024
+    This is of format:
+    syscall_name,timestamp,process_id,process_name,socket_fd,data buffer,buffer length
+
+    :param recvfrom_trace_line: Trace line for recvfrom syscall
+    :type recvfrom_trace_line: bytes
+    :param endian: Endian-ness of the sample
+    :type endian: str
+    :param feature_: Already extracted features: event name, PID, timestamp, process name
+    :type feature_: dict
+    :return: Additional extracted features
+    :rtype: dict
+    """
+    if feature_ is None:
+        feature_ = {}
+    tokens = recvfrom_trace_line.strip(b"\n").split(b",")
+
+    try:
+        num_bytes_to_read = int(tokens[6])
+        feature_.update({
+            "fd": int(tokens[4]),
+            # I read 64 bytes by default inside the tracer, so if num_bytes_to_read
+            # is less than 64, than I'll show the appropriate number of bytes to
+            # the user.
+            "buffer": tokens[5][:num_bytes_to_read],
+            "size": num_bytes_to_read
+        })
+    except (IndexError, ValueError):
+        # Unexpected trace line
+        LOG.error(f"Unexpected RECVFROM trace line: {recvfrom_trace_line}")
+        feature_.update({"fd": None, "buffer": None, "size": None})
+        return feature_
+
+    LOG.debug(f"Extracted recvfrom features: {feature_}")
     return feature_
