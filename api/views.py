@@ -85,7 +85,15 @@ def elf_reports(request, submission_uuid):
                          "error_msg": "No submission UUID provided"})
 
     all_reports = get_all_reports(submission_uuid)
-    if all_reports["console_output"]:
+
+    if all_reports is None:
+        context = {
+            "error_msg": f"Task UUID: {submission_uuid} not found. You may have to "
+                         "wait for a few seconds until the task is registered in the database."
+        }
+        return Response({"submission_uuid": submission_uuid, "report": context})
+
+    if all_reports.get("console_output", None):
         # Console output may contain non-UTF-8 characters which causes UnicodeDecodeError
         # when requesting report through the API
         all_reports["console_output"] = str(all_reports["console_output"], "ISO-8859-1")
