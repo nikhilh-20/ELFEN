@@ -62,6 +62,7 @@ class Ransomware:
                     "name": type(self).__name__ + f":Generic",
                     "score": 30,
                     "author": "ELFEN",
+                    "mitre_attack": "T1486: Data Encrypted for Impact",
                     "description": "Multiple file renaming events detected"
                 }
             }

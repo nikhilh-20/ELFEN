@@ -6,6 +6,7 @@ rule Linux_x86_Ransomware_AvosLocker
         description = "(ELFEN Test) Detects AvosLocker Ransomware"
         family = "AvosLocker"
         tags  = "ransomware"
+        mitre_attack = "T1486: Data Encrypted for Impact"
 
     strings:
         $ = ".avoslinux" nocase

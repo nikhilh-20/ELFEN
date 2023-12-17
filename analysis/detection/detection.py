@@ -88,8 +88,14 @@ def check_static_detection(data, taskreports, detection):
                                            for detector in static_detectors]
     detection.save(update_fields=["static_analysis_score", "static_analysis_detectors"])
 
+    mitre_attack = []
+    for detector in static_detectors:
+        mitre_ = [m_.strip() for m_ in detector.get("detector", {}).get("mitre_attack", []).split(",")]
+        mitre_attack.extend(mitre_)
+    mitre_attack = list(set(mitre_attack))
+
     LOG.debug(f"Finished applying detection on static analysis report")
-    return static_score, malware_families_static, ""
+    return static_score, mitre_attack, malware_families_static, ""
 
 
 def check_dynamic_detection(data, taskreports, detection):
@@ -124,8 +130,14 @@ def check_dynamic_detection(data, taskreports, detection):
                                             for detector in dynamic_detectors]
     detection.save(update_fields=["dynamic_analysis_score", "dynamic_analysis_detectors"])
 
+    mitre_attack = []
+    for detector in dynamic_detectors:
+        mitre_ = [m_.strip() for m_ in detector.get("detector", {}).get("mitre_attack", []).split(",")]
+        mitre_attack.extend(mitre_)
+    mitre_attack = list(set(mitre_attack))
+
     LOG.debug(f"Finished applying detection on dynamic analysis report")
-    return dynamic_score, malware_families_dynamic, ""
+    return dynamic_score, mitre_attack, malware_families_dynamic, ""
 
 
 def update_sample_malware_families(sample, malware_families):
@@ -222,7 +234,7 @@ def check_detection(context):
         "execution_time": int(context["execution_time"]),
         "compiled_yara_rules": _get_yara_rules()
     }
-    malware_families = []
+    malware_families, mitre_attack = [], []
 
     analysis_modules = context.get("config", {}).get("analysis", [])
     if not analysis_modules:
@@ -242,18 +254,19 @@ def check_detection(context):
     all_scores, detection_error = [], False
 
     if "static" in analysis_modules:
-        static_score, malware_families_static, err_msg = \
+        static_score, mitre_attack_static, malware_families_static, err_msg = \
             check_static_detection(data, taskreports, detection)
         if err_msg:
             detection_error = True
     else:
-        static_score, malware_families_static = 0, []
+        static_score, mitre_attack_static, malware_families_static = 0, [], []
 
+    mitre_attack.extend(mitre_attack_static)
     malware_families.extend(malware_families_static)
     all_scores.append(static_score)
 
     if "dynamic" in analysis_modules:
-        dynamic_score, malware_families_dynamic, err_msg = \
+        dynamic_score, mitre_attack_dynamic, malware_families_dynamic, err_msg = \
             check_dynamic_detection(data, taskreports, detection)
         if err_msg:
             detection_error = True
@@ -262,7 +275,10 @@ def check_detection(context):
         LOG.debug("Extracting C2 IP/port from network behavior, if any")
         extract_store_c2(parent_task)
     else:
-        dynamic_score, malware_families_dynamic = 0, []
+        dynamic_score, mitre_attack_dynamic, malware_families_dynamic = 0, [], []
+
+    mitre_attack.extend(mitre_attack_dynamic)
+    detection.mitre_attack = list(set(mitre_attack))
 
     malware_families.extend(malware_families_dynamic)
     all_scores.append(dynamic_score)
@@ -274,7 +290,7 @@ def check_detection(context):
     # updated in the DB
     if not detection_error:
         detection.status = TaskStatus.COMPLETE
-        detection.save(update_fields=["score", "status"])
+        detection.save(update_fields=["score", "status", "mitre_attack"])
 
     taskreports.status = TaskStatus.COMPLETE
     taskreports.save(update_fields=["status"])
