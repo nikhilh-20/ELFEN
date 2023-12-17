@@ -248,6 +248,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                                     <th style="text-align: left;">Detector</th>
                                                     <th style="text-align: right;">Score</th>
                                                     <th style="text-align: right;">Description</th>
+                                                    <th style="text-align: right;">MITRE ATT&CK</th>
                                                     <th style="text-align: right;">Author</th>
                                                 </tr>
                                             </thead>
@@ -265,6 +266,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                                             <td class="text-danger" style="text-align: right;"></td>
                                                         {% endif %}
                                                         <td style="text-align: left;">{{ entry.description }}</td>
+                                                        <td style="text-align: left;">{{ entry.mitre_attack }}</td>
                                                         <td style="text-align: left;">{{ entry.author }}</td>
                                                     </tr>
                                                 {% endfor %}
@@ -313,6 +315,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                                     <th style="text-align: left;">Detector</th>
                                                     <th style="text-align: right;">Score</th>
                                                     <th style="text-align: right;">Description</th>
+                                                    <th style="text-align: right;">MITRE ATT&CK</th>
                                                     <th style="text-align: right;">Author</th>
                                                 </tr>
                                             </thead>
@@ -330,6 +333,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                                                             <td class="text-danger" style="text-align: right;"></td>
                                                         {% endif %}
                                                         <td style="text-align: left;">{{ entry.description }}</td>
+                                                        <td style="text-align: left;">{{ entry.mitre_attack }}</td>
                                                         <td style="text-align: left;">{{ entry.author }}</td>
                                                     </tr>
                                                 {% endfor %}

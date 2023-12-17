@@ -43,6 +43,7 @@ class Process:
                         "name": type(self).__name__ + f":NameChange",
                         "score": 30,
                         "author": "ELFEN",
+                        "mitre_attack": "T1036: Masquerading",
                         "description": "Detects process name change through prctl()"
                     }
                 }
@@ -68,6 +69,7 @@ class Process:
                         "name": type(self).__name__ + f":UptimeExecve",
                         "score": 30,
                         "author": "ELFEN",
+                        "mitre_attack": "T1497: Virtualization/Sandbox Evasion",
                         "description": "Detects \"uptime\" command execution"
                     }
                 }

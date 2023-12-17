@@ -31,7 +31,7 @@ class Yara:
         Checks if the main sample triggered any yara. If so, it will
         increase the score.
         """
-        matches, scores, desc, authors = [], [], [], []
+        matches, scores, desc, authors, mitre_attack = [], [], [], [], []
         sample_path = data["sample_path"]
         compiled_rules = data["compiled_yara_rules"]
 
@@ -42,17 +42,19 @@ class Yara:
                 scores = [m.meta.get("score", 0) for m in sample_matches_]
                 desc = [m.meta.get("description", "") for m in sample_matches_]
                 authors = [m.meta.get("author", "") for m in sample_matches_]
+                mitre_attack = [m.meta.get("mitre_attack", "") for m in sample_matches_]
                 self.family.extend([m.meta["family"] for m in sample_matches_
                                     if m.meta.get("family", None)])
 
             if matches:
-                for r, s, d, a in zip(matches, scores, desc, authors):
+                for r, s, d, a, m in zip(matches, scores, desc, authors, mitre_attack):
                     dict_ = {
                         "file": data["file_hashes"]["sha256"],
                         "detector": {
                             "name": type(self).__name__ + f":{r}",
                             "score": s,
                             "author": a,
+                            "mitre_attack": m,
                             "description": d,
                         }
                     }
@@ -76,16 +78,18 @@ class Yara:
                 scores = [m.meta.get("score", 0) for m in file_matches_]
                 desc = [m.meta.get("description", "") for m in file_matches_]
                 authors = [m.meta.get("author", "") for m in file_matches_]
+                mitre_attack = [m.meta.get("mitre_attack", "") for m in file_matches_]
                 self.family.extend([m.meta["family"] for m in file_matches_
                                     if m.meta.get("family", None)])
 
-                for r, s, d, a in zip(matches, scores, desc, authors):
+                for r, s, d, a, m in zip(matches, scores, desc, authors, mitre_attack):
                     dict_ = {
                         "file": f,
                         "detector": {
                             "name": type(self).__name__ + f":{r}",
                             "score": s,
                             "author": a,
+                            "mitre_attack": m,
                             "description": d,
                         }
                     }

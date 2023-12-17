@@ -64,6 +64,7 @@ class Detection(models.Model):
     dynamic_analysis_score = models.SmallIntegerField(null=True)
     static_analysis_detectors = models.JSONField(null=True)
     dynamic_analysis_detectors = models.JSONField(null=True)
+    mitre_attack = fields.ArrayField(models.CharField(max_length=1024), default=list)
     errors = models.BooleanField(default=False)
     error_msg = models.CharField(max_length=4096, default="")
     status = models.SmallIntegerField(choices=TaskStatusChoices.choices,
