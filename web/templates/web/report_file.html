@@ -714,6 +714,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
         <div class="card-group" style="padding-top: 50px">
             <div class="card text-white bg-dark border-0">
+                <div class="card-header text-center" style="font-size: 25px;"><b>Network Analysis</b></div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 g-4" style="margin-top: 20px;">
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center">
+                        {% if data.network.pcapanalysis.status == "Not Started" or data.network.pcapanalysis.status == "In Progress" %}
+                            <span style="color: antiquewhite; font-size: 20px;">
+                                PCAP Analysis
+                            </span>
+                            {% if data.network.pcapanalysis.status == "In Progress" %}
+                                <div class="progress" style="margin-top: 10px; margin-left: 40%; margin-right: 40%;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                         style="width: 100%;"></div>
+                                </div>
+                            {%  endif %}
+                        {% else %}
+                            {% if data.network.pcapanalysis.status == "Complete" %}
+                                <span class="text-success" style="font-size: 20px;">PCAP Analysis</span>
+                            {% elif data.network.pcapanalysis.status == "Error" %}
+                                <span class="text-warning" style="font-size: 20px;">PCAP Analysis</span>
+                            {% endif %}
+                            <a href={% url "artifact_download" submission_uuid=submission_uuid backend="pcapanalysis" %}>
+                                <i class="bi bi-download"></i>
+                            </a>
+                            <a target="_blank"
+                                href={% url "backend_report" submission_uuid=submission_uuid backend="pcapanalysis" %}>
+                                <i class="bi bi-box-arrow-in-up-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-group" style="padding-top: 50px">
+            <div class="card text-white bg-dark border-0">
                 <div class="card-header text-center" style="font-size: 25px;"><b>Strings</b></div>
             </div>
         </div>

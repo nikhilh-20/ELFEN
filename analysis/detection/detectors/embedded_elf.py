@@ -36,7 +36,7 @@ class EmbeddedElf:
                 "detector": {
                     "name": type(self).__name__ + ":EmbeddedElf",
                     "score": 30,
-                    "author": "ELFEN",
+                    "author": "Nikhil Hegde <ka1do9>",
                     "mitre_attack": "T1027.009: Obfuscated Files or Information: Embedded Payloads",
                     "description": "Embedded ELF file detected",
                 }

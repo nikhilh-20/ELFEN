@@ -20,11 +20,14 @@ import logging
 from django.conf import settings
 from analysis.reporting.static import get_static_backend_report
 from analysis.reporting.dynamic import get_dynamic_backend_report
+from analysis.reporting.network import get_network_backend_report
 from analysis.reporting.detection import get_detection_backend_report
 from analysis.enum import status_mapping
-from analysis.reporting.enum import StaticBackends, DynamicBackends, DetectionBackends
+from analysis.reporting.enum import StaticBackends, DynamicBackends,\
+     NetworkBackends, DetectionBackends
 from analysis.analysis_models.static_analysis import *
 from analysis.analysis_models.dynamic_analysis import DynamicAnalysisReports, DynamicAnalysisMetadata
+from analysis.analysis_models.network_analysis import NetworkAnalysisReports
 from analysis.models import TaskMetadata, TaskReports, Detection
 
 
@@ -58,6 +61,11 @@ def download_artifact(submission_uuid, backend):
                                             submission_uuid, "dynamic_analysis", "memstrings.json")
         if os.path.isfile(memstrings_file_json):
             return open(memstrings_file_json, "rb")
+    elif backend == "pcapanalysis":
+        pcap_file = os.path.join(settings.BASE_DIR, "media", "web",
+                                 submission_uuid, "dynamic_analysis", "capture.pcap")
+        if os.path.isfile(pcap_file):
+            return open(pcap_file, "rb")
 
     return None
 
@@ -84,6 +92,12 @@ def get_backend_report(submission_uuid, backend):
     try:
         backend = getattr(DynamicBackends, backend.upper())
         return get_dynamic_backend_report(submission_uuid, backend)
+    except AttributeError:
+        pass
+
+    try:
+        backend = getattr(NetworkBackends, backend.upper())
+        return get_network_backend_report(submission_uuid, backend)
     except AttributeError:
         pass
 
@@ -164,7 +178,7 @@ def get_static_reports(static_analysis_reports, reports, submission_uuid):
                 "error_msg": []
             }
 
-            if backend_status == TaskStatus.IN_PROGRESS:
+            if backend_status is None or backend_status == TaskStatus.IN_PROGRESS:
                 continue
 
             backend_report = get_backend_report(submission_uuid, backend)
@@ -223,7 +237,7 @@ def get_dynamic_reports(dynamic_analysis_reports, reports, submission_uuid, web)
                 "error_msg": []
             }
 
-            if backend_status == TaskStatus.IN_PROGRESS:
+            if backend_status is None or backend_status == TaskStatus.IN_PROGRESS:
                 continue
 
             # Retrieve full report only for API requests. This is to make task overview page
@@ -242,6 +256,52 @@ def get_dynamic_reports(dynamic_analysis_reports, reports, submission_uuid, web)
             reports["data"]["dynamic"][backend]["error_msg"] = error_msg
             reports["data"]["dynamic"][backend]["data"] = backend_report["data"]
             reports["data"]["dynamic"][backend]["status"] = backend_status_desc
+
+    return reports
+
+
+def get_network_reports(network_analysis_reports, reports, submission_uuid):
+    """
+    Get analysis reports for all configured network analysis backends.
+
+    :param network_analysis_reports: Network analysis reports object
+    :type network_analysis_reports: analysis.analysis_models.network_analysis.NetworkAnalysisReports
+    :param reports: Dictionary of reports
+    :type reports: dict
+    :param submission_uuid: Task UUID
+    :type submission_uuid: str
+    :return: Updated report
+    :rtype: dict
+    """
+    if not network_analysis_reports:
+        return reports
+
+    for attr in dir(NetworkBackends):
+        if (not callable(getattr(NetworkBackends, attr)) and
+                not attr.startswith("__")):
+            backend = getattr(NetworkBackends, attr)
+            backend_status, backend_status_desc = _get_backend_status(network_analysis_reports, backend)
+
+            reports["data"]["network"][backend] = {
+                "status": backend_status_desc,
+                "data": None,
+                "errors": None,
+                "error_msg": []
+            }
+
+            if backend_status is None or backend_status == TaskStatus.IN_PROGRESS:
+                continue
+
+            backend_report = get_backend_report(submission_uuid, backend)
+            error_msg = backend_report["error_msg"]
+            if backend_status is None and backend_status_desc is None:
+                backend_status = TaskStatus.ERROR if error_msg else TaskStatus.NOT_STARTED
+                backend_status_desc = status_mapping[backend_status]
+
+            reports["data"]["network"][backend]["errors"] = backend_report["errors"]
+            reports["data"]["network"][backend]["error_msg"] = error_msg
+            reports["data"]["network"][backend]["data"] = backend_report["data"]
+            reports["data"]["network"][backend]["status"] = backend_status_desc
 
     return reports
 
@@ -313,7 +373,7 @@ def _get_backend_status(model, backend):
 
     :param model: Static analysis reports or dynamic analysis reports model
     :type model: analysis.analysis_models.static_analysis.StaticAnalysisReports or
-                 analysis.analysis_models.static_analysis.DynamicAnalysisReports
+                 analysis.analysis_models.static_analysis.NetworkAnalysisReports
     :param backend: Backend name
     :type backend: str
     :return: Task status and description
@@ -374,20 +434,23 @@ def get_all_reports(submission_uuid, web=False):
         "data": {
             "static": {},
             "dynamic": {},
+            "network": {},
             "detection": {}
         }
     })
     if parent_task.status == TaskStatus.COMPLETE or parent_task.status == TaskStatus.ERROR:
         reports["task_end_time"] = parent_task.end_time.strftime("%Y-%m-%d %H:%M:%S")
 
-    # Check if static and dynamic analysis reports exist
+    # Check if static, dynamic and network analysis reports exist
     try:
         task_reports = parent_task.taskreports
         static_analysis_reports = task_reports.static_reports
         dynamic_analysis_reports = task_reports.dynamic_reports
+        network_analysis_reports = task_reports.network_reports
         detection = parent_task.detection
     except (TaskReports.DoesNotExist, StaticAnalysisReports.DoesNotExist,
-            DynamicAnalysisReports.DoesNotExist, Detection.DoesNotExist):
+            DynamicAnalysisReports.DoesNotExist, NetworkAnalysisReports.DoesNotExist,
+            Detection.DoesNotExist):
         return reports
 
     if static_analysis_reports:
@@ -399,6 +462,11 @@ def get_all_reports(submission_uuid, web=False):
         # Populate dynamic analysis reports info
         reports = get_dynamic_reports(dynamic_analysis_reports, reports,
                                       submission_uuid, web)
+
+    if network_analysis_reports:
+        # Populate network analysis reports info
+        reports = get_network_reports(network_analysis_reports, reports,
+                                      submission_uuid)
 
     if detection:
         # Populate detection reports info

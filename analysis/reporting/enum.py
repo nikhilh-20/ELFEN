@@ -39,6 +39,10 @@ class DynamicBackends:
     C2CONFIG = "c2config"
 
 
+class NetworkBackends:
+    PCAPANALYSIS = "pcapanalysis"
+
+
 class DetectionBackends:
     BEHAVIORALDETECTION = "behavioraldetection"
     STATICDETECTION = "staticdetection"

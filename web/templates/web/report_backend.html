@@ -435,6 +435,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 </div>
             </div>
 
+        {% elif backend == "pcapanalysis" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">PCAP Analysis</div>
+                    <div class="card-body">
+                        <div class="card-header text-center" style="font-size: 25px;">DNS Analysis</div>
+                        <table class="table text-white" style="width: 70%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp (First seen)</th>
+                                    <th>Query domain</th>
+                                    <th>Query Type</th>
+                                    <th>Query Class</th>
+                                    <th>Response Type</th>
+                                    <th>Response Class</th>
+                                    <th>Response TTL (in seconds)</th>
+                                    <th>Response Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in report.data.dns %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ entry.ts }}</td>
+                                        <td style="text-align: left;">{{ entry.query_domain }}</td>
+                                        <td style="text-align: left;">{{ entry.query_type }}</td>
+                                        <td style="text-align: left;">{{ entry.query_class }}</td>
+                                        <td style="text-align: left;">{{ entry.response_type }}</td>
+                                        <td style="text-align: left;">{{ entry.response_class }}</td>
+                                        <td style="text-align: left;">{{ entry.response_ttl }}</td>
+                                        <td style="text-align: left;">{{ entry.response_data }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         {% endif %}
     </div>
 {% endblock content %}

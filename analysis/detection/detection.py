@@ -29,6 +29,7 @@ from analysis.models import Detection, TaskMetadata
 from analysis.enum import TaskStatus
 from analysis.detection.static import check_static_analysis
 from analysis.detection.dynamic import check_dynamic_analysis, extract_store_c2
+from analysis.detection.network import check_network_analysis
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
@@ -81,7 +82,7 @@ def check_static_detection(data, taskreports, detection):
         detection.errors = True
         detection.error_msg += err_msg
         detection.save(update_fields=["status", "errors", "error_msg"])
-        return 0, [], err_msg
+        return 0, [], [], err_msg
 
     detection.static_analysis_score = static_score
     detection.static_analysis_detectors = [detector["detector"]
@@ -123,7 +124,7 @@ def check_dynamic_detection(data, taskreports, detection):
         detection.errors = True
         detection.error_msg += err_msg
         detection.save(update_fields=["status", "errors", "error_msg"])
-        return 0, [], err_msg
+        return 0, [], [], err_msg
 
     detection.dynamic_analysis_score = dynamic_score
     detection.dynamic_analysis_detectors = [detector["detector"]
@@ -138,6 +139,48 @@ def check_dynamic_detection(data, taskreports, detection):
 
     LOG.debug(f"Finished applying detection on dynamic analysis report")
     return dynamic_score, mitre_attack, malware_families_dynamic, ""
+
+
+def check_network_detection(data, taskreports, detection):
+    """
+    This function performs detection analysis on the network analysis report.
+
+    :param data: Analysis metadata such as submission UUID, compiled set of YARA
+                 rules, dynamic analysis directory, etc.
+    :type data: dict
+    :param taskreports: TaskReports object
+    :type taskreports: analysis.models.TaskReports
+    :param detection: Detection object
+    :type detection: analysis.models.Detection
+    :return: Static analysis score, malware families detected, error message, if any
+    :rtype: int, list, list, str
+    """
+    LOG.debug(f"Applying detection on network analysis report")
+
+    network_score, network_detectors, malware_families_network, err_msg = \
+        check_network_analysis(taskreports.network_reports, data)
+
+    if network_score is None:
+        # Something went wrong with network analysis
+        detection.status = TaskStatus.ERROR
+        detection.errors = True
+        detection.error_msg += err_msg
+        detection.save(update_fields=["status", "errors", "error_msg"])
+        return 0, [], [], err_msg
+
+    detection.network_analysis_score = network_score
+    detection.network_analysis_detectors = [detector["detector"]
+                                            for detector in network_detectors]
+    detection.save(update_fields=["network_analysis_score", "network_analysis_detectors"])
+
+    mitre_attack = []
+    for detector in network_detectors:
+        mitre_ = [m_.strip() for m_ in detector.get("detector", {}).get("mitre_attack", []).split(",")]
+        mitre_attack.extend(mitre_)
+    mitre_attack = list(set(mitre_attack))
+
+    LOG.debug(f"Finished applying detection on network analysis report")
+    return network_score, mitre_attack, malware_families_network, ""
 
 
 def update_sample_malware_families(sample, malware_families):
@@ -278,10 +321,21 @@ def check_detection(context):
         dynamic_score, mitre_attack_dynamic, malware_families_dynamic = 0, [], []
 
     mitre_attack.extend(mitre_attack_dynamic)
-    detection.mitre_attack = list(set(mitre_attack))
-
     malware_families.extend(malware_families_dynamic)
     all_scores.append(dynamic_score)
+
+    if "network" in analysis_modules:
+        network_score, mitre_attack_network, malware_families_network, err_msg = \
+            check_network_detection(data, taskreports, detection)
+        if err_msg:
+            detection_error = True
+    else:
+        network_score, mitre_attack_network, malware_families_network = 0, [], []
+
+    mitre_attack.extend(mitre_attack_network)
+    detection.mitre_attack = list(set(mitre_attack))
+    malware_families.extend(malware_families_network)
+    all_scores.append(network_score)
 
     # Calculate final detection score
     detection.score = max(all_scores) if all_scores else 0
