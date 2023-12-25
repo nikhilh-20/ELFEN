@@ -11,3 +11,4 @@ d69177f28e1b9079053e30dbc67fffdece2439850b4c4c2df53c0af33b6e6125: ELF64, Binary 
 e4d10b0142721c42d55f2bfa975003981d20058eccf577939180aa5f0fa0c4dd: ELF64, Binary to test calls to libc functions - strcmp(), strncmp(), strstr(), strcpy(), strncpy()
 c563067392e6ff7ee1a668ecb695d9f449bb7c4c60693d4505be87297d9118ce: ELF64, Binary to test calls to sendto(), recvfrom()
 a1e185bce8ac11ffc435103f1401061dbc1ce1209f43a5efaaa12d5db20ec5d0: ELF64, Yara test binary
+65c0f964cade2e4850619343662d2c578a3c188ffdd5f9bbbfead9d97d11f9a7: ELF64, Binary to test DNS resolution

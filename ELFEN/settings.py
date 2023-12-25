@@ -145,6 +145,9 @@ CELERY_QUEUES = {
     "dynamic_analysis": {
         "binding_key": "dynamic_analysis"
     },
+    "network_analysis": {
+        "binding_key": "network_analysis"
+    },
     "detection_analysis": {
         "binding_key": "detection_analysis"
     },

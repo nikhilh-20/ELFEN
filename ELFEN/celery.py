@@ -24,6 +24,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks([
     "analysis.analysis.static",
     "analysis.analysis.dynamic",
+    "analysis.analysis.network",
     "analysis.detection.detection"
 ])
 

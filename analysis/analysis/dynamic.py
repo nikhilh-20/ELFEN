@@ -391,10 +391,10 @@ def start_analysis(context):
         err_msg = "No dynamic analysis report object. Something went wrong "\
                   "while analyzing trace logs."
         LOG.error(err_msg)
-        task_reports.status = TaskStatus.ERROR
-        task_reports.error_msg += f"{err_msg},"
-        task_reports.errors = True
-        task_reports.save(update_fields=["status", "errors", "error_msg"])
+        dynamic_analysis_report.status = TaskStatus.ERROR
+        dynamic_analysis_report.error_msg += f"{err_msg},"
+        dynamic_analysis_report.errors = True
+        dynamic_analysis_report.save(update_fields=["status", "errors", "error_msg"])
 
     LOG.debug(f"Deleting image directory: {linux_image_info['tmpdir']}")
     shutil.rmtree(linux_image_info["tmpdir"])

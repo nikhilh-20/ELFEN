@@ -1,6 +1,7 @@
 {
     "analysis": [
         "static",
-        "dynamic"
+        "dynamic",
+        "network"
     ]
 }

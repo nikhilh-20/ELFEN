@@ -42,7 +42,7 @@ class Process:
                     "detector": {
                         "name": type(self).__name__ + f":NameChange",
                         "score": 30,
-                        "author": "ELFEN",
+                        "author": "Nikhil Hegde <ka1do9>",
                         "mitre_attack": "T1036: Masquerading",
                         "description": "Detects process name change through prctl()"
                     }
@@ -68,7 +68,7 @@ class Process:
                     "detector": {
                         "name": type(self).__name__ + f":UptimeExecve",
                         "score": 30,
-                        "author": "ELFEN",
+                        "author": "Nikhil Hegde <ka1do9>",
                         "mitre_attack": "T1497: Virtualization/Sandbox Evasion",
                         "description": "Detects \"uptime\" command execution"
                     }

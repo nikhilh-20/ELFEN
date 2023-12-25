@@ -22,22 +22,8 @@ from web.models import SampleMetadata
 from analysis.analysis_models.utils import TaskStatusChoices
 from analysis.analysis_models.static_analysis import StaticAnalysisReports
 from analysis.analysis_models.dynamic_analysis import DynamicAnalysisReports
+from analysis.analysis_models.network_analysis import NetworkAnalysisReports
 from analysis.enum import *
-
-
-class NetworkAnalysisReports(models.Model):
-    errors = models.BooleanField(default=False)
-    error_msg = models.CharField(max_length=4096, default="")
-    status = models.SmallIntegerField(choices=TaskStatusChoices.choices,
-                                      default=TaskStatus.NOT_STARTED)
-
-    class Meta:
-        constraints = [
-            models.CheckConstraint(
-                name="%(app_label)s_%(class)s_status_valid",
-                check=models.Q(status__in=TaskStatusChoices.values)
-            )
-        ]
 
 
 class TaskReports(models.Model):
@@ -62,8 +48,10 @@ class Detection(models.Model):
     score = models.SmallIntegerField(null=True)
     static_analysis_score = models.SmallIntegerField(null=True)
     dynamic_analysis_score = models.SmallIntegerField(null=True)
+    network_analysis_score = models.SmallIntegerField(null=True)
     static_analysis_detectors = models.JSONField(null=True)
     dynamic_analysis_detectors = models.JSONField(null=True)
+    network_analysis_detectors = models.JSONField(null=True)
     mitre_attack = fields.ArrayField(models.CharField(max_length=1024), default=list)
     errors = models.BooleanField(default=False)
     error_msg = models.CharField(max_length=4096, default="")
