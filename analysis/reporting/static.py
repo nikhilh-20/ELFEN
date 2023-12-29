@@ -158,6 +158,27 @@ def get_strings_report(parent_task):
     return obj.strs, error_msg
 
 
+def get_similarsamples_report(parent_task):
+    """
+    This function retrieves samples that are similar to the given sample.
+    Clustering is done periodically using TLSH-based HAC-T algorithm.
+
+    :param parent_task: Parent Task object
+    :type parent_task: <class 'analysis.models.TaskMetadata'>
+    :return: Similar samples' SHA256 and error message
+    :rtype: tuple
+    """
+    error_msg = []
+
+    try:
+        data = parent_task.sha256.similar
+    except (AttributeError, TaskMetadata.DoesNotExist,
+            SampleMetadata.DoesNotExist):
+        return [], []
+
+    return data, error_msg
+
+
 def get_static_backend_report(submission_uuid, backend):
     """
     This function retrieves report for a specific backend in the static analysis

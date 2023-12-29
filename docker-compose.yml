@@ -100,6 +100,17 @@ services:
             rabbitmq:
                 condition: service_healthy
 
+    celery_periodic_analysis_worker:
+        image: elfen_image
+        command: celery -A ELFEN worker --beat -l INFO -Q periodic_analysis -n periodic_analysis_worker --heartbeat-interval=120 --without-gossip --without-mingle
+        restart: "always"
+        privileged: True
+        volumes:
+            - ./media/web:/elfen/media/web
+        depends_on:
+            rabbitmq:
+                condition: service_healthy
+
     flower:
         image: elfen_image
         command: celery -A ELFEN flower -l INFO

@@ -151,6 +151,9 @@ CELERY_QUEUES = {
     "detection_analysis": {
         "binding_key": "detection_analysis"
     },
+    "periodic_analysis": {
+        "binding_key": "periodic_analysis"
+    },
 }
 
 # Password validation

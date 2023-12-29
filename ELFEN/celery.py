@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
 from celery import Celery
+from celery.schedules import crontab
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ELFEN.settings")
 app = Celery("ELFEN")
@@ -25,6 +26,12 @@ app.autodiscover_tasks([
     "analysis.analysis.static",
     "analysis.analysis.dynamic",
     "analysis.analysis.network",
-    "analysis.detection.detection"
+    "analysis.detection.detection",
+    "analysis.analysis.periodic"
 ])
-
+app.conf.beat_schedule = {
+    "task_periodic": {
+        "task":  "analysis.analysis.periodic.start_analysis",
+        "schedule": crontab(minute=0, hour="*/1")
+    }
+}
