@@ -27,6 +27,7 @@ class StaticBackends:
     STATICANTIANALYSIS = "staticantianalysis"
     STATICANTIANTIANALYSIS = "staticantiantianalysis"
     STRINGS = "strings"
+    SIMILARSAMPLES = "similarsamples"
 
 
 class DynamicBackends:

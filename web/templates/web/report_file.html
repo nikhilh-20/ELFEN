@@ -553,6 +553,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     </div>
                 </div>
             </div>
+
+            <div class="col">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-body text-center text-success">
+                        <span style="font-size: 20px;">
+                            Similar Samples
+                        </span>
+                        <a target="_blank"
+                            href={% url "backend_report" submission_uuid=submission_uuid backend="similarsamples" %}>
+                            <i class="bi bi-box-arrow-in-up-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card-group" style="padding-top: 50px">

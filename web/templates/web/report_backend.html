@@ -240,6 +240,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                 </div>
             </div>
 
+        {% elif backend == "similarsamples" %}
+            <div class="card-group" style="padding-top: 50px">
+                <div class="card text-white bg-dark border-0">
+                    <div class="card-header text-center" style="font-size: 25px;">Similar Samples</div>
+                    <div class="card-body">
+                        <table class="table text-white" style="width: 40%; margin: auto;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">SHA256</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for value in report.data %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         {% elif backend == "strings" %}
             <div class="card-group" style="padding-top: 50px">
                 <div class="card text-white bg-dark border-0">

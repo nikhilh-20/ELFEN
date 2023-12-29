@@ -35,6 +35,7 @@ class SampleMetadata(models.Model):
     tlsh = models.CharField(max_length=72, null=True)
     family = fields.ArrayField(models.CharField(max_length=64), default=list)
     tags = fields.ArrayField(models.CharField(max_length=64), default=list)
+    similar = fields.ArrayField(models.CharField(max_length=64), default=list)
 
     # Django username (django.contrib.auth) are restricted to <=150 chars
     username = models.CharField(max_length=150)
