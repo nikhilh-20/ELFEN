@@ -127,7 +127,7 @@ def start_analysis(context):
     start_time = datetime.datetime.now()
 
     dynamic_reports = task_reports.dynamic_reports
-    if dynamic_reports is None:
+    while dynamic_reports is None:
         task_reports.refresh_from_db()
         dynamic_reports = task_reports.dynamic_reports
 
