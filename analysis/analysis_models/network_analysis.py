@@ -37,10 +37,10 @@ class DnsPacketAnalysis(models.Model):
     query_domain = models.CharField(max_length=255)
     query_type = models.CharField(max_length=8)
     query_class = models.CharField(max_length=8)
-    response_type = models.CharField(max_length=8)
-    response_class = models.CharField(max_length=8)
-    response_ttl = models.IntegerField()
-    response_data = models.CharField(max_length=256)
+    response_type = models.CharField(max_length=8, null=True)
+    response_class = models.CharField(max_length=8, null=True)
+    response_ttl = models.IntegerField(null=True)
+    response_data = models.CharField(max_length=4096, null=True)
 
 
 class NetworkAnalysisReports(models.Model):
