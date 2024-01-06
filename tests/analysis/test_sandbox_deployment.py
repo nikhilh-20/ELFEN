@@ -7,7 +7,7 @@ from django.test import TestCase
 
 from analysis.models import SampleMetadata
 from analysis.analysis.static import apply_feature_extractor
-from analysis.analysis.dynamic import create_esxcli_files
+from analysis.analysis.dynamic import create_esxi_files
 from analysis.analysis.utils.dynamic.behavior import get_qemu_cmd, get_arch_image_7z,\
                                                      get_image_info, get_arch_endian_from_machine_name
 
@@ -208,10 +208,10 @@ class SandboxDeploymentTestCase(TestCase):
         """
         Check if esxcli files are created as expected.
         """
-        status = create_esxcli_files(self.dynamic_analysis_dir)
+        status = create_esxi_files(self.dynamic_analysis_dir)
         self.assertTrue(status)
 
-        req_files = ["esxcli", "vm_name", "volume_id"]
+        req_files = ["esxcli", "vm_name", "volume_id", "vim-cmd"]
         for item in req_files:
             self.assertTrue(os.path.isfile(os.path.join(self.dynamic_analysis_dir, item)))
 

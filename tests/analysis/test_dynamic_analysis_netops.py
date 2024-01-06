@@ -7,7 +7,7 @@ from django.test import TestCase, tag
 from analysis.models import SampleMetadata
 from analysis.analysis.static import apply_feature_extractor
 from analysis.analysis.utils.dynamic.dynamic import read_tracers
-from analysis.analysis.dynamic import setup_sandbox_files, create_esxcli_files
+from analysis.analysis.dynamic import setup_sandbox_files, create_esxi_files
 from analysis.analysis.utils.dynamic.behavior import deploy_qemu, get_image_info
 
 
@@ -41,7 +41,7 @@ class DynamicAnalysisNetopsTestCase(TestCase):
         features = apply_feature_extractor(sample, os.path.join(cls.bin_dir, sha256))
         arch, endian = features.arch, features.endian
         image_info = get_image_info(arch, endian, False)
-        create_esxcli_files(cls.dynamic_analysis_dir)
+        create_esxi_files(cls.dynamic_analysis_dir)
         deploy_qemu(15, int(exec_time), arch, endian, cls.dynamic_analysis_dir,
                     False, image_info)
 
