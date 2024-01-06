@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import os
 import time
 import yara
+import json
 import logging
 import datetime
 
@@ -55,6 +56,20 @@ def _get_yara_rules():
 
     compiled_rules = yara.compile(filepaths=yara_fpaths, includes=False)
     return compiled_rules
+
+
+def _get_malicious_file_extensions():
+    """
+    Gets all known malicious file extensions from malicious_file_extensions.json
+
+    :return: Malicious file extensions mapping
+    :rtype: dict
+    """
+    mal_ext_fpath = os.path.join(settings.BASE_DIR, "rsrc", "detection",
+                                 "malicious_file_extensions.json")
+
+    with open(mal_ext_fpath, "r") as f:
+        return json.load(f)
 
 
 def check_static_detection(data, taskreports, detection):
@@ -275,7 +290,8 @@ def check_detection(context):
         "sample_path": context["sample_path"],
         "additional_files": context["additional_files"],
         "execution_time": int(context["execution_time"]),
-        "compiled_yara_rules": _get_yara_rules()
+        "compiled_yara_rules": _get_yara_rules(),
+        "malicious_file_extensions": _get_malicious_file_extensions(),
     }
     malware_families, mitre_attack = [], []
 
