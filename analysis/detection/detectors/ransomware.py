@@ -27,6 +27,34 @@ class Ransomware:
         self.err_msg = ""
         self.triggered_detectors = []
 
+    def detect_file_extensions(self, data):
+        """
+        Checks for presence of certain file extensions which are used by ransomware
+        to indicate encrypted files.
+        """
+        sha256 = data["file_hashes"]["sha256"]
+        kernel_trace = self.dynamic_reports.kernel_trace
+        objs = RenameEvent.objects.filter(kernel_trace=kernel_trace)
+        malicious_extensions = data.get("malicious_file_extensions", {})
+
+        for obj in objs:
+            # UTF-8 decoding should be sufficient
+            newfile_path = obj.newfile_path.tobytes().decode("utf-8")
+            newfile_path_extension = os.path.splitext(newfile_path)[1]
+            if newfile_path_extension in malicious_extensions:
+                dict_ = {
+                    "file": sha256,
+                    "detector": {
+                        "name": type(self).__name__ + ":FileExtension",
+                        "score": 70,
+                        "author": "Nikhil Hegde <ka1do9>",
+                        "mitre_attack": "T1486: Data Encrypted for Impact",
+                        "description": f"Known {malicious_extensions[newfile_path_extension]}-related file extension found"
+                    }
+                }
+                if dict_ not in self.triggered_detectors:
+                    self.triggered_detectors.append(dict_)
+
     def detect_file_renaming(self, data):
         """
         Checks for multiple file renaming events. Perhaps, it's a ransomware.
@@ -81,5 +109,6 @@ class Ransomware:
 
     def detect(self, data):
         self.detect_file_renaming(data)
+        self.detect_file_extensions(data)
 
         self.calc_score()
