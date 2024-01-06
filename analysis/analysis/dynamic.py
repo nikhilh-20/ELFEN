@@ -29,7 +29,7 @@ from string import ascii_letters
 from analysis.analysis.utils.dynamic.behavior import get_image_info, deploy_qemu,\
                                                      get_arch_endian_from_machine_name
 from analysis.analysis.utils.dynamic.dynamic import analyze_trace
-from analysis.analysis.utils.dynamic.esxcli_files import create_esxcli_files
+from analysis.analysis.utils.dynamic.esxi_files import create_esxi_files
 from analysis.analysis_models.utils import TaskStatus
 from analysis.analysis_models.dynamic_analysis import DynamicAnalysisReports
 from analysis.models import TaskMetadata
@@ -328,7 +328,7 @@ def start_analysis(context):
         return
     LOG.debug(f"Sandbox image context: {linux_image_info}")
 
-    status = create_esxcli_files(dynamic_analysis_dir)
+    status = create_esxi_files(dynamic_analysis_dir)
     if not status:
         err_msg = "Failed to create dummy esxcli files"
         LOG.error(err_msg)

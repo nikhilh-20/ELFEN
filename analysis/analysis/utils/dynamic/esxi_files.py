@@ -52,7 +52,75 @@ def _gen_random_uuid():
     return " ".join([f"{random_uuid[i: i+2]}" for i in range(0, len(random_uuid), 2)])
 
 
-def _get_c_code(vm_name, random_uuid, volume_id):
+def _get_vim_cmd_c_code(vm_name):
+    """
+    Generate C code to be compiled and executed. This is the source code for
+    the vim-cmd binary.
+
+    :param vm_name: Name of VM to be created
+    :type vm_name: str
+    :return: Source code for vim-cmd binary
+    :rtype: str
+    """
+    LOG.debug("Constructing C code for vim-cmd binary")
+
+    src = "#include <stdio.h>\n"
+    src += "#include <string.h>\n\n"
+
+    src += "int main(int argc, char **argv)\n{\n"
+    src += "\tchar *getallvms_output =\n"
+    src += f"\t\t\"Vmid\tName\tFile\tGuestOS\tVersion\tAnnotation\\n\"\n"
+    src += f"\t\t\"1\t{vm_name}\t[datastoreN] {vm_name}/{vm_name}.vmx\tubuntu64\tvmx-19\\t\\n\";\n\n"
+
+    src += "\tfor (int i = 1; i < argc; i++)\n\t{\n"
+    src += "\t\tif (strcmp(argv[i], \"vmsvc/getallvms\") == 0)\n"
+    src += "\t\t{\n"
+    src += "\t\t\tprintf(\"%s\\n\", getallvms_output);\n"
+    src += "\t\t\treturn 0;\n"
+    src += "\t\t}\n"
+    src += "\t\telse if (strcmp(argv[i], \"hostsvc/autostartmanager/enable_autostart\") == 0 ||\n"
+    src += "\t\t\t\tstrcmp(argv[i], \"vmsvc/power.off\") == 0 ||\n"
+    src += "\t\t\t\tstrcmp(argv[i], \"vmsvc/snapshot.removeall\") == 0)\n"
+    src += "\t\t{\n"
+    src += "\t\t\t// Though this block is not needed, it serves as documentation of commands used by ESXi-related ransomware\n"
+    src += "\t\t\treturn 0;\n"
+    src += "\t\t}\n"
+    src += "\t}\n\n"
+    src += "\treturn 0;\n"
+    src += "}"
+
+    return src
+
+
+def create_vim_cmd_binary(vm_name, dynamic_analysis_dir):
+    """
+    This function creates the vim-cmd binary.
+
+    :param vm_name: Name (randomized) of VM to be created
+    :type vm_name: str
+    :param dynamic_analysis_dir: Path to dynamic analysis directory
+    :type dynamic_analysis_dir: str
+    :return: Flag to indicate if compilation of vim-cmd binary was successful
+    :rtype: bool
+    """
+    src_path = os.path.join(dynamic_analysis_dir, "vim_cmd.c")
+    binary_path = os.path.join(dynamic_analysis_dir, "vim-cmd")
+    src = _get_vim_cmd_c_code(vm_name)
+    with open(src_path, "w") as f:
+        f.write(src)
+
+    try:
+        LOG.debug(f"Compiling vim-cmd binary. Source path: {src_path}")
+        subprocess.run(["gcc", src_path, "-o", binary_path], check=True)
+        os.remove(src_path)
+    except subprocess.CalledProcessError:
+        LOG.error(f"Could not compile vim-cmd binary. Source path: {src_path}")
+        return False
+
+    return True
+
+
+def _get_esxcli_c_code(vm_name, random_uuid, volume_id):
     """
     Generate C code to be compiled and executed. This is the source code for
     the esxcli binary.
@@ -99,7 +167,8 @@ def _get_c_code(vm_name, random_uuid, volume_id):
     src += "\t\t\tprintf(\"%s\\n\", storage_filesystem_list_output);\n"
     src += "\t\t\treturn 0;\n"
     src += "\t\t}\n"
-    src += "\t}\n"
+    src += "\t}\n\n"
+    src += "\treturn 0;\n"
     src += "}"
 
     return src
@@ -122,7 +191,7 @@ def create_esxcli_binary(vm_name, random_uuid, volume_id, dynamic_analysis_dir):
     """
     src_path = os.path.join(dynamic_analysis_dir, "esxcli.c")
     binary_path = os.path.join(dynamic_analysis_dir, "esxcli")
-    src = _get_c_code(vm_name, random_uuid, volume_id)
+    src = _get_esxcli_c_code(vm_name, random_uuid, volume_id)
     with open(src_path, "w") as f:
         f.write(src)
 
@@ -262,7 +331,7 @@ def _get_vmxf(vm_name, random_uuid):
     return contents
 
 
-def create_supporting_esxcli_files(vm_name, random_uuid, dynamic_analysis_dir):
+def create_vm_disk_files(vm_name, random_uuid, dynamic_analysis_dir):
     """
     This function creates supporting ESXi VM files. These include .vmx, .vmxf,
      .vmdk and .nvram files.
@@ -302,10 +371,10 @@ def create_supporting_esxcli_files(vm_name, random_uuid, dynamic_analysis_dir):
         f.write(b"\x4d\x52\x56\x4e" + os.urandom(nvram_filesize))
 
 
-def create_esxcli_files(dynamic_analysis_dir):
+def create_esxi_files(dynamic_analysis_dir):
     """
     This function creates ESXi-related files for dynamic analysis. Ransomware
-    for ESXi will end up targeting these files.
+    for ESXi will end up leveraging/targeting these files.
 
     :param dynamic_analysis_dir: Dynamic analysis directory on disk.
     :return: Flag to indicate if ESXi-related files were written to disk.
@@ -317,12 +386,17 @@ def create_esxcli_files(dynamic_analysis_dir):
     vm_name_length = random.randint(6, 16)
     vm_name = "".join(random.choices(string.ascii_letters, k=vm_name_length))
 
+    status = create_vim_cmd_binary(vm_name, dynamic_analysis_dir)
+    if not status:
+        LOG.error("Could not create vim-cmd binary")
+        return False
+
     status = create_esxcli_binary(vm_name, random_uuid, volume_id, dynamic_analysis_dir)
     if not status:
         LOG.error("Could not create esxcli binary")
         return False
 
-    create_supporting_esxcli_files(vm_name, random_uuid, dynamic_analysis_dir)
+    create_vm_disk_files(vm_name, random_uuid, dynamic_analysis_dir)
 
     # Volume ID and VM name are required by the orchestrator to know where to
     # write ESXi files
