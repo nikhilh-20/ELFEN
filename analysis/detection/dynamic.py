@@ -1,5 +1,5 @@
 """
-Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+Copyright (C) 2023-2024 Nikhil Ashok Hegde (@ka1do9)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
 
 DETECTORS = [
-    "ransomware", "process", "mem_yara", "mutex"
+    "ransomware", "process", "mem_yara", "mutex", "file_ops"
 ]
 
 
