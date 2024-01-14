@@ -1,5 +1,5 @@
 """
-Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+Copyright (C) 2023-2024 Nikhil Ashok Hegde (@ka1do9)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -129,6 +129,31 @@ class Process:
                 if dict_ not in self.triggered_detectors:
                     self.triggered_detectors.append(dict_)
 
+    def detect_crontab_execve(self):
+        """
+        Checks for the presence of crontab execution
+        """
+        kernel_trace = self.dynamic_reports.kernel_trace
+        objs = ExecveEvent.objects.filter(kernel_trace=kernel_trace)
+
+        for obj in objs:
+            exec_path = obj.exec_path.tobytes()
+
+            if exec_path == b"/usr/bin/crontab":
+                dict_ = {
+                    "file": None,
+                    "detector": {
+                        "name": type(self).__name__ + f":CrontabExecve",
+                        "score": 30,
+                        "author": "Nikhil Hegde <ka1do9>",
+                        "mitre_attack": "T1053.003: Scheduled Task/Job: Cron",
+                        "description": "Detects usage of crontab"
+                    }
+                }
+
+                if dict_ not in self.triggered_detectors:
+                    self.triggered_detectors.append(dict_)
+
     def detect_process_name_change(self):
         """
         Checks for the presence of process name changes. If so, it will
@@ -195,5 +220,6 @@ class Process:
         self.detect_uptime_process_execve()
         self.detect_vim_cmd_execve()
         self.detect_esxcli_execve()
+        self.detect_crontab_execve()
 
         self.calc_score()

@@ -1,5 +1,5 @@
 """
-Copyright (C) 2023  Nikhil Ashok Hegde (@ka1do9)
+Copyright (C) 2023-2024 Nikhil Ashok Hegde (@ka1do9)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -68,6 +68,9 @@ class Ransomware:
 
         if objs:
             total_rename_events = len(objs)
+
+        if total_rename_events == 1:
+            return
 
         for obj in objs:
             oldfile_path = obj.oldfile_path.tobytes().decode("utf-8")
