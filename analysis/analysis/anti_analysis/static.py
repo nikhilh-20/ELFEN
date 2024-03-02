@@ -70,6 +70,7 @@ def check_if_packed(sample_path):
     # more relaxed than specified in the associated paper. This modification is
     # based purely on observation in my test samples.
     entropy_packed = bintropy.bintropy(sample_path,
+                                       ignore_half_block_same_byte=True,
                                        threshold_average_entropy=6.6,
                                        threshold_highest_entropy=7.1)
 

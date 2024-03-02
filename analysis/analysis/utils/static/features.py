@@ -74,6 +74,7 @@ def get_sample_features(sample_path):
 
     try:
         highest_block_entropy, average_entropy = bintropy.bintropy(sample_path,
+                                                                   ignore_half_block_same_byte=True,
                                                                    decide=False)
     except ValueError as err:
         LOG.debug(f"bintropy failed: {err}")

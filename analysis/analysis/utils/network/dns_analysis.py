@@ -23,7 +23,8 @@ import os
 import logging
 import datetime
 
-from analysis.analysis_models.network_analysis import DnsPacketAnalysis
+from analysis.analysis_models.utils import TaskStatus
+from analysis.analysis_models.network_analysis import *
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 LOG = logging.getLogger(__name__)
@@ -73,11 +74,13 @@ def _get_rdata_from_rtype(dns_record_content, type_):
                 f"retry={dns_record_content.retry}, " \
                 f"expire={dns_record_content.expire}, " \
                 f"minimum={dns_record_content.minimum}"
+    else:
+        LOG.warning(f"Unknown DNS record type: {type_}")
 
     return rdata
 
 
-def analyze_dns_response_packet(dns_layer, arrival_time, info):
+def analyze_dns_response_packet(dns_layer, arrival_time, sample, pcap_analysis):
     """
     This function parses the given DNS response packet and extracts answer
     and nameserver records.
@@ -86,8 +89,10 @@ def analyze_dns_response_packet(dns_layer, arrival_time, info):
     :type dns_layer: scapy.layers.dns.DNS
     :param arrival_time: Arrival time of packet
     :type arrival_time: float
-    :param info: Structure containing associated DNS query information
-    :type info: dict
+    :param sample: Sample object
+    :type sample: web.models.SampleMetadataq
+    :param pcap_analysis: PcapAnalysis object
+    :type pcap_analysis: analysis.analysis_models.network_analysis.PcapAnalysis
     :return: Extracted DNS response-related information
     :rtype: dict
     """
@@ -95,43 +100,112 @@ def analyze_dns_response_packet(dns_layer, arrival_time, info):
 
     # Traversing answer records
     for i in range(0, dns_layer.ancount):
-        # For some reason, scapy adds a "." at the end of the qname. Strip it.
-        qname = dns_layer.an[i].rrname.decode("utf-8").strip(".")
-        type_ = dnstypes.get(dns_layer.an[i].type, dns_layer.an[i].type)
-        rclass = dnsclasses.get(dns_layer.an[i].rclass, dns_layer.an[i].rclass)
-        ttl = getattr(dns_layer.an[i], "ttl", None)
-        rdata = _get_rdata_from_rtype(dns_layer.an[i], type_)
+        flags = (dns_layer.qr << 15) | (dns_layer.opcode << 11) | \
+                (dns_layer.aa << 10) | (dns_layer.tc << 9) | (dns_layer.rd << 8) | \
+                (dns_layer.ra << 7) | (dns_layer.z << 4) | dns_layer.rcode
 
-        info[qname]["response"].append({
-            "ts": datetime.datetime.fromtimestamp(arrival_time),
-            "type": type_,
-            "class": rclass,
-            "ttl": ttl,
-            "rdata": rdata
-        })
+        response_obj = DnsResponse.objects.create(ts=datetime.datetime.fromtimestamp(arrival_time),
+                                                  sample=sample, pcapanalysis=pcap_analysis,
+                                                  txid=dns_layer.id, flags=flags, rcode=dns_layer.rcode,
+                                                  qdcount=dns_layer.qdcount, ancount=dns_layer.ancount,
+                                                  nscount=dns_layer.nscount, arcount=dns_layer.arcount,
+                                                  rrsection=RRSectionChoices.AN, status=TaskStatus.IN_PROGRESS)
+
+        try:
+            rtype = dnstypes.get(dns_layer.an[i].type, dns_layer.an[i].type)
+            rclass = dnsclasses.get(dns_layer.an[i].rclass, dns_layer.an[i].rclass)
+            ttl = getattr(dns_layer.an[i], "ttl", None)
+            rdata = _get_rdata_from_rtype(dns_layer.an[i], rtype)
+        except AttributeError as err:
+            response_obj.errors = True
+            response_obj.error_msg = f"AttributeError: {err}"
+            response_obj.status = TaskStatus.ERROR
+            response_obj.save()
+            continue
+
+        response_obj.response_type = rtype
+        response_obj.response_class = rclass
+        response_obj.response_ttl = ttl
+        response_obj.response_data = rdata
+        response_obj.status = TaskStatus.COMPLETE
+        response_obj.save()
 
     # Traversing name server records
     for i in range(0, dns_layer.nscount):
-        # For some reason, scapy adds a "." at the end of the qname. Strip it.
-        qname_ = dns_layer.ns[i].rrname.decode("utf-8").strip(".")
-        qname = dns_layer.qd[i].qname.decode("utf-8").strip(".") if qname_ == "" else qname_
-        type_ = dnstypes.get(dns_layer.ns[i].type, dns_layer.ns[i].type)
-        rclass = dnsclasses.get(dns_layer.ns[i].rclass, dns_layer.ns[i].rclass)
-        ttl = getattr(dns_layer.ns[i], "ttl", None)
-        rdata = _get_rdata_from_rtype(dns_layer.ns[i], type_)
+        flags = (dns_layer.qr << 15) | (dns_layer.opcode << 11) | \
+                (dns_layer.aa << 10) | (dns_layer.tc << 9) | (dns_layer.rd << 8) | \
+                (dns_layer.ra << 7) | (dns_layer.z << 4) | dns_layer.rcode
 
-        info[qname]["response"].append({
-            "ts": datetime.datetime.fromtimestamp(arrival_time),
-            "type": type_,
-            "class": rclass,
-            "ttl": ttl,
-            "rdata": rdata
-        })
+        response_obj = DnsResponse.objects.create(ts=datetime.datetime.fromtimestamp(arrival_time),
+                                                  sample=sample, pcapanalysis=pcap_analysis,
+                                                  txid=dns_layer.id, flags=flags, rcode=dns_layer.rcode,
+                                                  qdcount=dns_layer.qdcount, ancount=dns_layer.ancount,
+                                                  nscount=dns_layer.nscount, arcount=dns_layer.arcount,
+                                                  rrsection=RRSectionChoices.NS, status=TaskStatus.IN_PROGRESS)
 
-    return info
+        try:
+            rtype = dnstypes.get(dns_layer.ns[i].type, dns_layer.ns[i].type)
+            rclass = dnsclasses.get(dns_layer.ns[i].rclass, dns_layer.ns[i].rclass)
+            ttl = getattr(dns_layer.ns[i], "ttl", None)
+            rdata = _get_rdata_from_rtype(dns_layer.ns[i], rtype)
+        except AttributeError as err:
+            response_obj.errors = True
+            response_obj.error_msg = f"AttributeError: {err}"
+            response_obj.status = TaskStatus.ERROR
+            response_obj.save()
+            continue
+
+        response_obj.response_type = rtype
+        response_obj.response_class = rclass
+        response_obj.response_ttl = ttl
+        response_obj.response_data = rdata
+        response_obj.status = TaskStatus.COMPLETE
+        response_obj.save()
+
+    # Traversing additional resource records
+    for i in range(0, dns_layer.arcount):
+        opt_data = []
+        flags = (dns_layer.qr << 15) | (dns_layer.opcode << 11) | \
+                (dns_layer.aa << 10) | (dns_layer.tc << 9) | (dns_layer.rd << 8) | \
+                (dns_layer.ra << 7) | (dns_layer.z << 4) | dns_layer.rcode
+
+        response_obj = DnsResponse.objects.create(ts=datetime.datetime.fromtimestamp(arrival_time),
+                                                  sample=sample, pcapanalysis=pcap_analysis,
+                                                  txid=dns_layer.id, flags=flags, rcode=dns_layer.rcode,
+                                                  qdcount=dns_layer.qdcount, ancount=dns_layer.ancount,
+                                                  nscount=dns_layer.nscount, arcount=dns_layer.arcount,
+                                                  rrsection=RRSectionChoices.AR, status=TaskStatus.IN_PROGRESS)
+
+        # This additional if-block is required because some malware set arcount
+        # to 1 but don't include any additional records. Just using a for loop
+        # on the ith index will throw an IndexError exception.
+        if i < len(dns_layer.ar):
+            for j in dns_layer.ar[i].rdata:
+                opt_data.append({"type": dns_layer.ar[i].type,
+                                 "optcode": dns_layer.ar[i].rdata[j].optcode,
+                                 "data": dns_layer.ar[i].rdata[j].payload.original.decode("utf-8")})
+
+        response_obj.opt_data = opt_data
+        response_obj.status = TaskStatus.COMPLETE
+        response_obj.save(update_fields=["opt_data", "status"])
+
+    # Look for response errors
+    if dns_layer.rcode != 0:
+        flags = (dns_layer.qr << 15) | (dns_layer.opcode << 11) | \
+                (dns_layer.aa << 10) | (dns_layer.tc << 9) | (dns_layer.rd << 8) | \
+                (dns_layer.ra << 7) | (dns_layer.z << 4) | dns_layer.rcode
+
+        DnsResponse.objects.create(ts=datetime.datetime.fromtimestamp(arrival_time),
+                                   sample=sample, pcapanalysis=pcap_analysis,
+                                   txid=dns_layer.id, flags=flags, rcode=dns_layer.rcode,
+                                   qdcount=dns_layer.qdcount, ancount=dns_layer.ancount,
+                                   nscount=dns_layer.nscount, arcount=dns_layer.arcount,
+                                   rrsection=None, status=TaskStatus.COMPLETE)
+
+    return True
 
 
-def analyze_dns_query_packet(dns_layer, arrival_time):
+def analyze_dns_query_packet(dns_layer, arrival_time, sample, pcap_analysis):
     """
     This function parses specific information (query name, type of record,
     query class) from the given DNS query packet.
@@ -140,28 +214,73 @@ def analyze_dns_query_packet(dns_layer, arrival_time):
     :type dns_layer: scapy.layers.dns.DNS
     :param arrival_time: Arrival time of packet
     :type arrival_time: float
-    :return: Extracted DNS query-related information
-    :rtype: dict
+    :param sample: Sample object
+    :type sample: web.models.SampleMetadata
+    :param pcap_analysis: PcapAnalysis object
+    :type pcap_analysis: analysis.analysis_models.network_analysis.PcapAnalysis
+    :return: Status of DNS query packet processing
+    :rtype: bool
     """
     LOG.debug(f"Analyzing DNS query packet: {dns_layer}")
-    info = {}
 
     for i in range(0, dns_layer.qdcount):
-        # For some reason, scapy adds a "." at the end of the qname. Strip it.
-        qname = dns_layer.qd[i].qname.decode("utf-8").strip(".")
-        qtype = dns_layer.qd[i].qtype
-        qclass = dns_layer.qd[i].qclass
+        flags = (dns_layer.qr << 15) | (dns_layer.opcode << 11) | \
+                (dns_layer.aa << 10) | (dns_layer.tc << 9) | (dns_layer.rd << 8) | \
+                (dns_layer.ra << 7) | (dns_layer.z << 4) | dns_layer.rcode
 
-        # It is not expected that there be multiple queries in a single DNS
-        # query packet with the same query name.
-        info[qname] = {
-            "ts": datetime.datetime.fromtimestamp(arrival_time),
-            "qtype": dnstypes.get(qtype, qtype),
-            "qclass": dnsclasses.get(qclass, qclass),
-            "response": []
-        }
+        query_obj = DnsQuery.objects.create(ts=datetime.datetime.fromtimestamp(arrival_time),
+                                            sample=sample, pcapanalysis=pcap_analysis,
+                                            txid=dns_layer.id, flags=flags,
+                                            qdcount=dns_layer.qdcount, ancount=dns_layer.ancount,
+                                            nscount=dns_layer.nscount, arcount=dns_layer.arcount,
+                                            rrsection=RRSectionChoices.QD, status=TaskStatus.IN_PROGRESS)
 
-    return info
+        try:
+            qname = dns_layer.qd[i].qname.decode("utf-8").strip(".")
+            qtype = dns_layer.qd[i].qtype
+            qclass = dns_layer.qd[i].qclass
+        except AttributeError as err:
+            # There are some weird cases where a DNS packet isn't parsed
+            # correctly. The domain name is in the packet data #TODO.
+            query_obj.errors = True
+            query_obj.error_msg = str(err)
+            query_obj.status = TaskStatus.ERROR
+            query_obj.save()
+            continue
+
+        query_obj.query_domain = qname
+        query_obj.query_type = dnstypes.get(qtype, qtype)
+        query_obj.query_class = dnsclasses.get(qclass, qclass)
+        query_obj.status = TaskStatus.COMPLETE
+        query_obj.save()
+
+    for i in range(0, dns_layer.arcount):
+        opt_data = []
+        flags = (dns_layer.qr << 15) | (dns_layer.opcode << 11) | \
+                (dns_layer.aa << 10) | (dns_layer.tc << 9) | (dns_layer.rd << 8) | \
+                (dns_layer.ra << 7) | (dns_layer.z << 4) | dns_layer.rcode
+
+        query_obj = DnsQuery.objects.create(ts=datetime.datetime.fromtimestamp(arrival_time),
+                                            sample=sample, pcapanalysis=pcap_analysis,
+                                            txid=dns_layer.id, flags=flags,
+                                            qdcount=dns_layer.qdcount, ancount=dns_layer.ancount,
+                                            nscount=dns_layer.nscount, arcount=dns_layer.arcount,
+                                            rrsection=RRSectionChoices.AR, status=TaskStatus.IN_PROGRESS)
+
+        # This additional if-block is required because some malware set arcount
+        # to 1 but don't include any additional records. Just using a for loop
+        # on the ith index will throw an IndexError exception.
+        if i < len(dns_layer.ar):
+            for j in dns_layer.ar[i].rdata:
+                opt_data.append({"type": dns_layer.ar[i].type,
+                                 "optcode": dns_layer.ar[i].rdata[j].optcode,
+                                 "data": dns_layer.ar[i].rdata[j].payload.original.decode("utf-8")})
+
+        query_obj.opt_data = opt_data
+        query_obj.status = TaskStatus.COMPLETE
+        query_obj.save(update_fields=["opt_data", "status"])
+
+    return True
 
 
 def build_qr_pairs(dns_packets):
@@ -217,7 +336,6 @@ def dns_analysis(all_dns_packets, sample, pcap_analysis):
     :type pcap_analysis: analysis.analysis_models.network_analysis.PcapAnalysis
     """
     LOG.debug(f"Starting analysis on DNS packets")
-    info = []
 
     for tid in all_dns_packets:
         dns_packets = all_dns_packets[tid]
@@ -227,39 +345,10 @@ def dns_analysis(all_dns_packets, sample, pcap_analysis):
 
         # Extract information from each query-response pair
         for query_packet, response_packet in dns_packets_paired:
-            info_ = analyze_dns_query_packet(query_packet[DNS],
-                                             float(query_packet.time))
+            analyze_dns_query_packet(query_packet[DNS],
+                                     float(query_packet.time),
+                                     sample, pcap_analysis)
             if response_packet:
-                info_ = analyze_dns_response_packet(response_packet[DNS],
-                                                    float(response_packet.time),
-                                                    info_)
-
-            info.append(info_)
-
-    if info:
-        for entry in info:
-            for qname in entry:
-                if len(entry[qname]["response"]) > 0:
-                    for response in entry[qname]["response"]:
-                        DnsPacketAnalysis.objects.create(
-                            sample=sample,
-                            pcapanalysis=pcap_analysis,
-                            query_domain=qname,
-                            ts=entry[qname]["ts"],
-                            query_type=entry[qname]["qtype"],
-                            query_class=entry[qname]["qclass"],
-                            response_type=response["type"],
-                            response_class=response["class"],
-                            response_ttl=response["ttl"],
-                            response_data=response["rdata"],
-                        )
-                else:
-                    # No response for query
-                    DnsPacketAnalysis.objects.create(
-                        sample=sample,
-                        pcapanalysis=pcap_analysis,
-                        query_domain=qname,
-                        ts=entry[qname]["ts"],
-                        query_type=entry[qname]["qtype"],
-                        query_class=entry[qname]["qclass"],
-                    )
+                analyze_dns_response_packet(response_packet[DNS],
+                                            float(response_packet.time),
+                                            sample, pcap_analysis)
