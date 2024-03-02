@@ -464,30 +464,115 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
                     <div class="card-header text-center" style="font-size: 25px;">PCAP Analysis</div>
                     <div class="card-body">
                         <div class="card-header text-center" style="font-size: 25px;">DNS Analysis</div>
-                        <table class="table text-white" style="width: 70%; margin: auto;">
+                        <table class="table text-white" style="width: 100%; margin: auto;">
                             <thead>
                                 <tr>
-                                    <th>Timestamp</th>
-                                    <th>Query domain</th>
-                                    <th>Query Type</th>
-                                    <th>Query Class</th>
-                                    <th>Response Type</th>
-                                    <th>Response Class</th>
-                                    <th>Response TTL (in seconds)</th>
-                                    <th>Response Data</th>
+                                    <th>Query</th>
+                                    <th>Response</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for entry in report.data.dns %}
+                                {% for txid, entry in report.data.dns.items %}
                                     <tr>
-                                        <td style="text-align: left;">{{ entry.ts }}</td>
-                                        <td style="text-align: left;">{{ entry.query_domain }}</td>
-                                        <td style="text-align: left;">{{ entry.query_type }}</td>
-                                        <td style="text-align: left;">{{ entry.query_class }}</td>
-                                        <td style="text-align: left;">{{ entry.response_type }}</td>
-                                        <td style="text-align: left;">{{ entry.response_class }}</td>
-                                        <td style="text-align: left;">{{ entry.response_ttl }}</td>
-                                        <td style="text-align: left;">{{ entry.response_data }}</td>
+                                        <td colspan="2">ID: {{ txid }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <table class="table text-white" style="width: 100%; margin: auto;">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Timestamp</th>
+                                                        <th>Flags</th>
+                                                        <th>Question Count</th>
+                                                        <th>Answer Count</th>
+                                                        <th>Name Server Count</th>
+                                                        <th>Additional Records Count</th>
+                                                        <th>Question Section</th>
+                                                        <th>Additional Records Section</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ entry.query.ts }}</td>
+                                                        <td style="text-align: left;">{{ entry.query.flags }}</td>
+                                                        <td style="text-align: left;">{{ entry.query.qdcount }}</td>
+                                                        <td style="text-align: left;">{{ entry.query.ancount }}</td>
+                                                        <td style="text-align: left;">{{ entry.query.nscount }}</td>
+                                                        <td style="text-align: left;">{{ entry.query.arcount }}</td>
+                                                        <td>
+                                                            <table class="table text-white" style="width: 100%; margin: auto;">
+                                                                {% for entry_ in entry.query.qd %}
+                                                                    <tr><td style="text-align: left;">Domain: {{ entry_.query_domain }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Type: {{ entry_.query_type }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Class: {{ entry_.query_class }}</td></tr>
+                                                                {% endfor %}
+                                                            </table>
+                                                        </td>
+                                                        <td style="text-align: left;">{{ entry.query.ar }}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                        <td>
+                                            <table class="table text-white" style="width: 100%; margin: auto;">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Timestamp</th>
+                                                        <th>Flags</th>
+                                                        <th>Response Code</th>
+                                                        <th>Question Count</th>
+                                                        <th>Answer Count</th>
+                                                        <th>Name Server Count</th>
+                                                        <th>Additional Records Count</th>
+                                                        <th>Answer Section</th>
+                                                        <th>Name Server Section</th>
+                                                        <th>Additional Records Section</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td style="text-align: left;">{{ entry.response.ts }}</td>
+                                                        <td style="text-align: left;">{{ entry.response.flags }}</td>
+                                                        <td style="text-align: left;">{{ entry.response.rcode }}</td>
+                                                        <td style="text-align: left;">{{ entry.response.qdcount }}</td>
+                                                        <td style="text-align: left;">{{ entry.response.ancount }}</td>
+                                                        <td style="text-align: left;">{{ entry.response.nscount }}</td>
+                                                        <td style="text-align: left;">{{ entry.response.arcount }}</td>
+                                                        <td>
+                                                            <table class="table text-white" style="width: 100%; margin: auto;">
+                                                                {% for entry_ in entry.response.an %}
+                                                                    <tr><td style="text-align: left;">Type: {{ entry_.response_type }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Class: {{ entry_.response_class }}</td></tr>
+                                                                    <tr><td style="text-align: left;">TTL: {{ entry_.response_ttl }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Data: {{ entry_.response_data }}</td></tr>
+                                                                    <tr><td></td></tr>
+                                                                {% endfor %}
+                                                            </table>
+                                                        </td>
+                                                        <td>
+                                                            <table class="table text-white" style="width: 100%; margin: auto;">
+                                                                {% for entry_ in entry.response.ns %}
+                                                                    <tr><td style="text-align: left;">Type: {{ entry_.response_type }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Class: {{ entry_.response_class }}</td></tr>
+                                                                    <tr><td style="text-align: left;">TTL: {{ entry_.response_ttl }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Data: {{ entry_.response_data }}</td></tr>
+                                                                {% endfor %}
+                                                            </table>
+                                                        </td>
+                                                        <td>
+                                                            <table class="table text-white" style="width: 100%; margin: auto;">
+                                                                {% for entry_ in entry.response.ar %}
+                                                                    <tr><td style="text-align: left;">Type: {{ entry_.response_type }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Class: {{ entry_.response_class }}</td></tr>
+                                                                    <tr><td style="text-align: left;">TTL: {{ entry_.response_ttl }}</td></tr>
+                                                                    <tr><td style="text-align: left;">Data: {{ entry_.response_data }}</td></tr>
+                                                                {% endfor %}
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
