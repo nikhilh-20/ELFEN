@@ -19,7 +19,7 @@ Install docker and docker compose from https://docs.docker.com/engine/install/ub
 1. Clone the ELFEN repository
 
 ```bash
-$ git clone --recursive https://github.com/nikhilh-20/ELFEN.git
+$ git clone --recursive git@github.com:nikhilh-20/ELFEN.git
 ```
 
 2. Modify the DJANGO secret key in `ELFEN/settings.py#L30`. The secret key is used by Django for cryptographic purposes and must be secure. It can be generated in the following manner, for example:

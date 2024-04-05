@@ -180,10 +180,20 @@ def analyze_dns_response_packet(dns_layer, arrival_time, sample, pcap_analysis):
         # to 1 but don't include any additional records. Just using a for loop
         # on the ith index will throw an IndexError exception.
         if i < len(dns_layer.ar):
-            for j in dns_layer.ar[i].rdata:
-                opt_data.append({"type": dns_layer.ar[i].type,
-                                 "optcode": dns_layer.ar[i].rdata[j].optcode,
-                                 "data": dns_layer.ar[i].rdata[j].payload.original.decode("utf-8")})
+            if isinstance(dns_layer.ar[i].rdata, str):
+                opt_data.append({
+                    "type": dns_layer.ar[i].type,
+                    "data": dns_layer.ar[i].rdata
+                })
+            elif isinstance(dns_layer.ar[i].rdata, list):
+                for j in dns_layer.ar[i].rdata:
+                    opt_data.append({
+                        "type": dns_layer.ar[i].type,
+                        "optcode": dns_layer.ar[i].rdata[j].optcode,
+                        "data": dns_layer.ar[i].rdata[j].payload.original.decode("utf-8")
+                    })
+            else:
+                LOG.error(f"Unknown DNS AR type: {dns_layer.ar[i].rdata}")
 
         response_obj.opt_data = opt_data
         response_obj.status = TaskStatus.COMPLETE
@@ -271,10 +281,20 @@ def analyze_dns_query_packet(dns_layer, arrival_time, sample, pcap_analysis):
         # to 1 but don't include any additional records. Just using a for loop
         # on the ith index will throw an IndexError exception.
         if i < len(dns_layer.ar):
-            for j in dns_layer.ar[i].rdata:
-                opt_data.append({"type": dns_layer.ar[i].type,
-                                 "optcode": dns_layer.ar[i].rdata[j].optcode,
-                                 "data": dns_layer.ar[i].rdata[j].payload.original.decode("utf-8")})
+            if isinstance(dns_layer.ar[i].rdata, str):
+                opt_data.append({
+                    "type": dns_layer.ar[i].type,
+                    "data": dns_layer.ar[i].rdata
+                })
+            elif isinstance(dns_layer.ar[i].rdata, list):
+                for j in dns_layer.ar[i].rdata:
+                    opt_data.append({
+                        "type": dns_layer.ar[i].type,
+                        "optcode": dns_layer.ar[i].rdata[j].optcode,
+                        "data": dns_layer.ar[i].rdata[j].payload.original.decode("utf-8")
+                    })
+            else:
+                LOG.error(f"Unknown DNS AR type: {dns_layer.ar[i].rdata}")
 
         query_obj.opt_data = opt_data
         query_obj.status = TaskStatus.COMPLETE

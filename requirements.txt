@@ -5,7 +5,6 @@ asgiref==3.6.0
 asttokens==2.2.1
 attrs==22.2.0
 backcall==0.2.0
-backports.zoneinfo==0.2.1
 beautifulsoup4==4.11.1
 billiard==3.6.4.0
 binary2strings==0.1.9
