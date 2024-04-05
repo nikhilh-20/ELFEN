@@ -69,15 +69,25 @@ class NetworkAnalysisPcapAnalysisTestCase(TestCase):
 
     def test_dns_analysis(self):
         """
-        Parse capture.pcap and check that it contains the expected data.
+        Parse capture.pcap and check that it contains the expected data. This
+        test is particularly fickle because it relies on network traffic from
+        an uncontrolled source (the server) which may change at any time.
         """
         pcap_file = os.path.join(self.dynamic_analysis_dir, "capture.pcap")
         pcap_analysis_obj = perform_pcap_analysis(pcap_file, self.sample)
         dns_info, _ = get_dns_analysis_values(self.sample, pcap_analysis_obj)
 
-        for entry in dns_info:
-            self.assertEqual(entry["query_domain"], "google.com")
-            self.assertEqual(entry["query_type"], "A")
-            self.assertEqual(entry["query_class"], "IN")
-            self.assertEqual(entry["response_type"], "A")
-            self.assertEqual(entry["response_class"], "IN")
+        for txid in dns_info:
+            query_entry = dns_info[txid]["query"]
+            # Assert query entries
+            self.assertEqual(len(query_entry["qd"]), 1)
+            self.assertEqual(len(query_entry["ar"]), 0)
+            self.assertEqual(query_entry["qd"][0]["query_domain"], "google.com")
+            self.assertEqual(query_entry["qd"][0]["query_type"], "A")
+            self.assertEqual(query_entry["qd"][0]["query_class"], "IN")
+
+            response_entry = dns_info[txid]["response"]
+            # Assert response entries
+            self.assertGreater(response_entry["ancount"], 0)
+            self.assertEqual(response_entry["an"][0]["response_type"], "A")
+            self.assertEqual(response_entry["an"][0]["response_class"], "IN")
