@@ -224,3 +224,9 @@ $ cat report.json | jq
   }
 }
 ```
+
+## Conferences
+
+1. Nullcon Goa 2023
+    1. Slides: https://github.com/nikhilh-20/ELFEN/blob/main/docs/Nullcon_Goa_2023_Slides.pdf
+    2. Talk: https://www.youtube.com/watch?v=opfwbNlijSg
